@@ -1,0 +1,63 @@
+﻿using MySql.Data.MySqlClient;
+using System;
+
+namespace EquusTrackBackend
+{
+    internal class Database
+    {
+        private const string connectionString = "server=localhost;database=EquusTrackDB;user=root;password=123456789;";
+
+        public static MySqlConnection GetConnection()
+        {
+            var connection = new MySqlConnection(connectionString);
+            connection.Open();
+            return connection;
+        }
+
+        public static bool Login(string email, string password)
+        {
+            using (var conn = GetConnection())
+            {
+                string query = "SELECT PasswordHash FROM Usuarios WHERE Email = @Email";
+                using var cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Email", email);
+
+                var result = cmd.ExecuteScalar();
+                if (result != null)
+                {
+                    string storedHash = result.ToString();
+                    return BCrypt.Net.BCrypt.Verify(password, storedHash);
+                }
+                return false;
+            }
+        }
+
+        public static void InsertarAdminSiNoExiste()
+        {
+            using (var conn = GetConnection())
+            {
+                string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = 'admin@gestorcaballos.com'";
+                using var checkCmd = new MySqlCommand(checkQuery, conn);
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    string hash = BCrypt.Net.BCrypt.HashPassword("admin1234");
+
+                    string insert = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol)
+                              VALUES ('Admin', 'Principal', 'admin@gestorcaballos.com', @Hash, 'Administrador')";
+                    using var cmd = new MySqlCommand(insert, conn);
+                    cmd.Parameters.AddWithValue("@Hash", hash);
+                    cmd.ExecuteNonQuery();
+                    Console.WriteLine("Administrador creado con éxito.");
+                }
+                else
+                {
+                    Console.WriteLine("Administrador ya existe.");
+                }
+            }
+        }
+
+
+    }
+}
