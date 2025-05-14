@@ -16,18 +16,37 @@ export default function Registro() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Enviando datos:", formData);
 
     try {
+      console.log("Iniciando solicitud fetch...");
       const res = await fetch("http://localhost:5000/registrar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+      console.log("Respuesta recibida:", res.status, res.statusText);
 
-      const result = await res.json();
-      alert(result.mensaje);
+      // Leer el texto de la respuesta primero
+      const textResponse = await res.text();
+      console.log("Respuesta como texto:", textResponse);
+
+      // Solo intentar parsear si hay contenido
+      if (textResponse) {
+        try {
+          const result = JSON.parse(textResponse);
+          console.log("Respuesta parseada:", result);
+          alert(result.mensaje || "Usuario registrado correctamente");
+        } catch (jsonError) {
+          console.error("Error al parsear la respuesta JSON:", jsonError);
+          alert("Respuesta recibida del servidor, pero no es un JSON válido");
+        }
+      } else {
+        alert("El servidor respondió, pero sin contenido");
+      }
     } catch (error) {
-      alert("Error al registrar usuario.");
+      console.error("Error completo:", error);
+      alert(`Error al conectar con el servidor: ${error.message}`);
     }
   };
 
