@@ -40,10 +40,8 @@ namespace EquusTrackBackend
                     using var reader = new StreamReader(context.Request.InputStream);
                     string body = await reader.ReadToEndAsync();
                     Console.WriteLine($"Datos recibidos: {body}"); // Log para depuración
-
                     var datos = JsonSerializer.Deserialize<UsuarioRegistro>(body,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
                     bool ok = false;
                     if (datos != null)
                     {
@@ -51,16 +49,13 @@ namespace EquusTrackBackend
                             datos.Nombre, datos.Apellido, datos.Email, datos.Password, datos.Rol
                         );
                     }
-
                     context.Response.StatusCode = ok ? 200 : 400;
                     context.Response.ContentType = "application/json";
                     AgregarCabecerasCORS(context.Response);
-
                     var respuesta = JsonSerializer.Serialize(new
                     {
                         mensaje = ok ? "Usuario registrado correctamente" : "Error en el registro"
                     });
-
                     using var writer = new StreamWriter(context.Response.OutputStream);
                     await writer.WriteAsync(respuesta);
                     await writer.FlushAsync();
@@ -72,9 +67,68 @@ namespace EquusTrackBackend
                     context.Response.StatusCode = 500;
                     context.Response.ContentType = "application/json";
                     AgregarCabecerasCORS(context.Response);
-
                     using var writer = new StreamWriter(context.Response.OutputStream);
                     await writer.WriteAsync(JsonSerializer.Serialize(new { mensaje = $"Error en el servidor: {ex.Message}" }));
+                    await writer.FlushAsync();
+                    context.Response.Close();
+                }
+            }
+            else if (path == "/login" && context.Request.HttpMethod == "POST")
+            {
+                try
+                {
+                    using var reader = new StreamReader(context.Request.InputStream);
+                    string body = await reader.ReadToEndAsync();
+                    Console.WriteLine($"Login - Datos recibidos: {body}"); // Log para depuración
+
+                    var datos = JsonSerializer.Deserialize<LoginRequest>(body,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (datos == null)
+                    {
+                        throw new Exception("Datos de login inválidos");
+                    }
+
+                    var usuario = Database.ValidarLogin(datos.Email, datos.Password);
+
+                    context.Response.StatusCode = usuario != null ? 200 : 401;
+                    context.Response.ContentType = "application/json";
+                    AgregarCabecerasCORS(context.Response);
+
+                    using var writer = new StreamWriter(context.Response.OutputStream);
+                    if (usuario != null)
+                    {
+                        await writer.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            exito = true,
+                            id = usuario.Id,
+                            nombre = usuario.Nombre,
+                            rol = usuario.Rol
+                        }));
+                    }
+                    else
+                    {
+                        await writer.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            exito = false,
+                            mensaje = "Credenciales incorrectas"
+                        }));
+                    }
+                    await writer.FlushAsync();
+                    context.Response.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error en login: {ex.Message}");
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
+                    AgregarCabecerasCORS(context.Response);
+                    using var writer = new StreamWriter(context.Response.OutputStream);
+                    await writer.WriteAsync(JsonSerializer.Serialize(new
+                    {
+                        exito = false,
+                        mensaje = $"Error en el servidor: {ex.Message}"
+                    }));
                     await writer.FlushAsync();
                     context.Response.Close();
                 }
@@ -108,5 +162,12 @@ namespace EquusTrackBackend
             public string Password { get; set; }
             public string Rol { get; set; }
         }
+
+        private class LoginRequest
+        {
+            public string Email { get; set; }
+            public string Password { get; set; }
+        }
+
     }
 }

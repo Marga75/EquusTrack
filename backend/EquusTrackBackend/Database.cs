@@ -96,5 +96,37 @@ namespace EquusTrackBackend
             }
         }
 
+        public class Usuario
+        {
+            public int Id { get; set; }
+            public string Nombre { get; set; }
+            public string Rol { get; set; }
+        }
+
+        public static Usuario? ValidarLogin(string email, string password)
+        {
+            using var conn = GetConnection();
+            string query = "SELECT Id, Nombre, PasswordHash, Rol FROM Usuarios WHERE Email = @Email";
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                string hash = reader.GetString("PasswordHash");
+                if (BCrypt.Net.BCrypt.Verify(password, hash))
+                {
+                    return new Usuario
+                    {
+                        Id = reader.GetInt32("Id"),
+                        Nombre = reader.GetString("Nombre"),
+                        Rol = reader.GetString("Rol")
+                    };
+                }
+            }
+
+            return null;
+        }
+
     }
 }
