@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Data;
 
 namespace EquusTrackBackend
 {
@@ -127,6 +128,43 @@ namespace EquusTrackBackend
 
             return null;
         }
+
+        public class Caballo
+        {
+            public int Id { get; set; }
+            public string Nombre { get; set; }
+            public string Foto { get; set; }
+        }
+
+        public static List<Caballo> ObtenerCaballosPorUsuario(int idUsuario, string rol)
+        {
+            var lista = new List<Caballo>();
+            using var conn = GetConnection();
+
+            string query = rol == "entrenador"
+                ? @"SELECT c.Id, c.Nombre, c.Foto
+            FROM Caballos c
+            INNER JOIN Usuarios u ON c.IdUsuario = u.Id OR c.IdEntrenador = u.Id
+            WHERE u.Id = @Id"
+                : @"SELECT Id, Nombre, Foto FROM Caballos WHERE IdUsuario = @Id";
+
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Id", idUsuario);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                lista.Add(new Caballo
+                {
+                    Id = reader.GetInt32("Id"),
+                    Nombre = reader.GetString("Nombre"),
+                    Foto = reader.IsDBNull("Foto") ? null : reader.GetString("Foto")
+                });
+            }
+
+            return lista;
+        }
+
 
     }
 }
