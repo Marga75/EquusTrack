@@ -2,6 +2,7 @@ import "./App.css";
 import { useState } from "react";
 import Registro from "./components/Registro";
 import Login from "./components/Login";
+import PantallaPrincipal from "./components/PantallaPrincipal";
 
 function App() {
   const [usuario, setUsuario] = useState(null);
@@ -19,8 +20,7 @@ function App() {
         <Login onLoginSuccess={(data) => setUsuario(data)} />
       ) : (
         <div>
-          <h1 className="text-xl font-bold">Bienvenido, {usuario.nombre}</h1>
-          {/* Aquí iría la pantalla principal con caballos */}
+          <PantallaPrincipal usuario={usuario} />
         </div>
       )}
     </div>
