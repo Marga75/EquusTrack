@@ -142,11 +142,11 @@ namespace EquusTrackBackend
             using var conn = GetConnection();
 
             string query = rol == "entrenador"
-                ? @"SELECT c.Id, c.Nombre, c.Foto
+                ? @"SELECT c.Id, c.Nombre, c.FotoUrl
             FROM Caballos c
             INNER JOIN Usuarios u ON c.IdUsuario = u.Id OR c.IdEntrenador = u.Id
             WHERE u.Id = @Id"
-                : @"SELECT Id, Nombre, Foto FROM Caballos WHERE IdUsuario = @Id";
+                : @"SELECT Id, Nombre, FotoUrl FROM Caballos WHERE IdUsuario = @Id";
 
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@Id", idUsuario);
@@ -158,7 +158,7 @@ namespace EquusTrackBackend
                 {
                     Id = reader.GetInt32("Id"),
                     Nombre = reader.GetString("Nombre"),
-                    Foto = reader.IsDBNull("Foto") ? null : reader.GetString("Foto")
+                    Foto = reader.IsDBNull("FotoUrl") ? null : reader.GetString("FotoUrl")
                 });
             }
 

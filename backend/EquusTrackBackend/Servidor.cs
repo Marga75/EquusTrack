@@ -48,6 +48,10 @@ namespace EquusTrackBackend
                     await ProcesarCaballos(context);
                     break;
 
+                case string p when p.StartsWith("/api/caballos/usuario/") && metodo == "GET":
+                    await ProcesarCaballosPorGet(context);
+                    break;
+
                 default:
                     // Ruta no encontrada
                     context.Response.StatusCode = 404;
@@ -55,6 +59,44 @@ namespace EquusTrackBackend
                     break;
             }
         }
+
+        private static async Task ProcesarCaballosPorGet(HttpListenerContext context)
+        {
+            try
+            {
+                string path = context.Request.Url.AbsolutePath;
+                string[] partes = path.Split('/');
+
+                if (partes.Length < 5 || !int.TryParse(partes[4], out int idUsuario))
+                {
+                    throw new Exception("ID de usuario inválido");
+                }
+
+                // Intentar obtener el rol desde query, si no viene, usar un valor por defecto
+                string rol = context.Request.QueryString["rol"] ?? "Jinete"; // Cambia esto si el rol predeterminado debe ser otro
+
+                if (string.IsNullOrWhiteSpace(rol))
+                {
+                    throw new Exception("El rol es obligatorio");
+                }
+
+                var lista = Database.ObtenerCaballosPorUsuario(idUsuario, rol);
+
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "application/json";
+                AgregarCabecerasCORS(context.Response);
+
+                using var writer = new StreamWriter(context.Response.OutputStream);
+                await writer.WriteAsync(JsonSerializer.Serialize(new { caballos = lista }));
+                await writer.FlushAsync();
+                context.Response.Close();
+            }
+            catch (Exception ex)
+            {
+                EnviarErrorRespuesta(context, ex, "Error al obtener caballos (GET)");
+            }
+        }
+
 
         private static async Task ProcesarRegistro(HttpListenerContext context)
         {
@@ -123,9 +165,12 @@ namespace EquusTrackBackend
                     await writer.WriteAsync(JsonSerializer.Serialize(new
                     {
                         exito = true,
-                        id = usuario.Id,
-                        nombre = usuario.Nombre,
-                        rol = usuario.Rol
+                        usuario = new
+                        {
+                            id = usuario.Id,
+                            nombre = usuario.Nombre,
+                            rol = usuario.Rol
+                        }
                     }));
                 }
                 else

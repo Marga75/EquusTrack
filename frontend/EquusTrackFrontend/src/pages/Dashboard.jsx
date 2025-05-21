@@ -6,10 +6,32 @@ import logo from "../assets/logo.webp";
 import { Plus } from "lucide-react";
 import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [caballos, setCaballos] = useState([]);
+
+  useEffect(() => {
+    if (!usuario?.id) return; // si no hay usuario, no hace nada
+
+    async function fetchCaballos() {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/caballos/usuario/${usuario.id}`
+        );
+        if (!res.ok) throw new Error("Error al cargar caballos");
+        const data = await res.json();
+        setCaballos(data.caballos || []);
+      } catch (error) {
+        console.error("Error cargando caballos:", error);
+      }
+    }
+
+    fetchCaballos();
+  }, [usuario]);
 
   const handleLogout = () => {
     logout();
@@ -66,9 +88,9 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Caballos */}
+        {/* Caballos 
         <div className="col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {/* Tarjetas */}
+          Tarjetas 
           {[
             { src: caballo1, nombre: "Bella" },
             { src: caballo2, nombre: "Luna" },
@@ -77,6 +99,44 @@ export default function Dashboard() {
             <div key={i} className="bg-white rounded-xl shadow overflow-hidden">
               <img
                 src={caballo.src}
+                alt={caballo.nombre}
+                className="w-full h-40 object-cover"
+              />
+              <p className="text-center py-2 font-medium">{caballo.nombre}</p>
+            </div>
+          ))} */}
+
+        {/* Caballos */}
+        <div className="col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {/* Si no hay caballos, muestra una imagen fija (opcional) */}
+          {caballos.length === 0 && (
+            <>
+              {[caballo1, caballo2, caballo3].map((src, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl shadow overflow-hidden"
+                >
+                  <img
+                    src={src}
+                    alt={`Caballo ${i + 1}`}
+                    className="w-full h-40 object-cover"
+                  />
+                  <p className="text-center py-2 font-medium">
+                    Caballo {i + 1}
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Mapea los caballos traídos del backend */}
+          {caballos.map((caballo) => (
+            <div
+              key={caballo.id}
+              className="bg-white rounded-xl shadow overflow-hidden"
+            >
+              <img
+                src={caballo.fotoUrl || caballo1} // o cualquier fallback que tengas
                 alt={caballo.nombre}
                 className="w-full h-40 object-cover"
               />
