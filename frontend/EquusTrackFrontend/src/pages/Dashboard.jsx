@@ -19,14 +19,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Barra superior */}
-      <header className="flex items-center justify-between px-8 py-4 bg-white shadow">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="Logo" className="w-10 h-10" />
+      <header className="flex flex-col items-center justify-between px-8 py-4 bg-white shadow">
+        {/* Logo arriba centrado */}
+        <div className="mb-4">
+          <img src={logo} alt="Logo" className="w-80 mx-auto" />
         </div>
-        <nav className="flex gap-6 text-slate-700 font-medium items-center">
-          <a href="#" className="hover:text-blue-600">Inicio</a>
-          <a href="#" className="hover:text-blue-600">Mis Caballos</a>
-          <a href="#" className="hover:text-blue-600">Entrenamientos</a>
+        {/* Navegación */}
+        <nav className="w-full flex items-center justify-between gap-6 text-slate-700 font-medium">
+          {/* Links centrados */}
+          <div className="flex gap-6 mx-auto">
+            <a href="#" className="hover:text-blue-600">
+              Inicio
+            </a>
+            <a href="#" className="hover:text-blue-600">
+              Mis Caballos
+            </a>
+            <a href="#" className="hover:text-blue-600">
+              Entrenamientos
+            </a>
+          </div>
+
+          {/* Botón a la derecha */}
           <button
             onClick={handleLogout}
             className="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
@@ -56,9 +69,17 @@ export default function Dashboard() {
         {/* Caballos */}
         <div className="col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {/* Tarjetas */}
-          {[{ src: caballo1, nombre: "Bella" }, { src: caballo2, nombre: "Luna" }, { src: caballo3, nombre: "Rocky" }].map((caballo, i) => (
+          {[
+            { src: caballo1, nombre: "Bella" },
+            { src: caballo2, nombre: "Luna" },
+            { src: caballo3, nombre: "Rocky" },
+          ].map((caballo, i) => (
             <div key={i} className="bg-white rounded-xl shadow overflow-hidden">
-              <img src={caballo.src} alt={caballo.nombre} className="w-full h-40 object-cover" />
+              <img
+                src={caballo.src}
+                alt={caballo.nombre}
+                className="w-full h-40 object-cover"
+              />
               <p className="text-center py-2 font-medium">{caballo.nombre}</p>
             </div>
           ))}
