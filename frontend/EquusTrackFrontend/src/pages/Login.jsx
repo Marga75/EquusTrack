@@ -13,7 +13,7 @@ export default function Login() {
 
   const { usuario, login } = useAuth();
 
-  // 👉 Redirige automáticamente si ya hay un usuario logueado
+  // Redirige automáticamente si ya hay un usuario logueado
   useEffect(() => {
     if (usuario) {
       navigate("/dashboard");
@@ -33,9 +33,7 @@ export default function Login() {
       const data = await res.json();
 
       if (data.exito) {
-        //onLoginSuccess(data); // guarda token o info de usuario si quieres
-        //navigate("/"); // redirige al dashboard
-        login(data.usuario); // suponiendo que "usuario" es el objeto que envías
+        login(data.usuario);
         navigate("/dashboard"); // redirige al dashboard si inicia sesión
       } else {
         setError("Credenciales incorrectas");

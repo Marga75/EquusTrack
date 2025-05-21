@@ -6,9 +6,14 @@ export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem("usuario");
-    if (usuarioGuardado) {
-      setUsuario(JSON.parse(usuarioGuardado));
+    try {
+      const usuarioGuardado = localStorage.getItem("usuario");
+      if (usuarioGuardado && usuarioGuardado !== "undefined") {
+        setUsuario(JSON.parse(usuarioGuardado));
+      }
+    } catch (error) {
+      console.error("Error parseando usuario guardado:", error);
+      setUsuario(null);
     }
   }, []);
 
