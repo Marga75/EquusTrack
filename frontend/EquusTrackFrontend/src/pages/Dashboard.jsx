@@ -26,7 +26,7 @@ export default function Dashboard() {
       const caballosNormalizados = rawCaballos.map((c) => ({
         id: c.Id ?? c.id,
         nombre: c.Nombre ?? c.nombre,
-        fotoUrl: c.Foto ?? c.foto,
+        fotoUrl: c.FotoUrl ?? c.fotoUrl,
         edad: c.Edad ?? c.edad,
         raza: c.Raza ?? c.raza,
         color: c.Color ?? c.color,

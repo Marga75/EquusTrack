@@ -114,32 +114,6 @@ namespace EquusTrackBackend
             public string Genero { get; set; }
         }
 
-
-        /*public static Usuario? ValidarLogin(string email, string password)
-        {
-            using var conn = GetConnection();
-            string query = "SELECT Id, Nombre, PasswordHash, Rol FROM Usuarios WHERE Email = @Email";
-            using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@Email", email);
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                string hash = reader.GetString("PasswordHash");
-                if (BCrypt.Net.BCrypt.Verify(password, hash))
-                {
-                    return new Usuario
-                    {
-                        Id = reader.GetInt32("Id"),
-                        Nombre = reader.GetString("Nombre"),
-                        Rol = reader.GetString("Rol")
-                    };
-                }
-            }
-
-            return null;
-        }*/
-
         public static Usuario? ValidarLogin(string email, string password)
         {
             using var conn = GetConnection();
@@ -174,7 +148,12 @@ namespace EquusTrackBackend
         {
             public int Id { get; set; }
             public string Nombre { get; set; }
-            public string Foto { get; set; }
+            public string Edad { get; set; }
+            public string Raza { get; set; }
+            public string Color { get; set; }
+            public string FotoUrl { get; set; } 
+            public int IdUsuario { get; set; }
+            public int? IdEntrenador { get; set; }
         }
 
         public static List<Caballo> ObtenerCaballosPorUsuario(int idUsuario, string rol)
@@ -199,7 +178,7 @@ namespace EquusTrackBackend
                 {
                     Id = reader.GetInt32("Id"),
                     Nombre = reader.GetString("Nombre"),
-                    Foto = reader.IsDBNull("FotoUrl") ? null : reader.GetString("FotoUrl")
+                    FotoUrl = reader.IsDBNull("FotoUrl") ? null : reader.GetString("FotoUrl")
                 });
             }
 
@@ -236,6 +215,36 @@ namespace EquusTrackBackend
 
             int filasAfectadas = cmd.ExecuteNonQuery();
             return filasAfectadas > 0;
+        }
+
+        public static Caballo? ObtenerCaballoPorId(int id)
+        {
+            using var conn = GetConnection(); // Asegúrate de usar el método correcto
+            string query = @"SELECT Id, Nombre, Edad, Raza, Color, FotoUrl, IdUsuario, IdEntrenador 
+                     FROM Caballos WHERE Id = @Id";
+
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return new Caballo
+                {
+                    Id = reader.GetInt32("Id"),
+                    Nombre = reader.GetString("Nombre"),
+                    Edad = reader.GetInt32("Edad").ToString(),
+                    Raza = reader.GetString("Raza"),
+                    Color = reader.GetString("Color"),
+                    FotoUrl = reader.GetString("FotoUrl"),
+                    IdUsuario = reader.GetInt32("IdUsuario"),
+                    IdEntrenador = reader.IsDBNull(reader.GetOrdinal("IdEntrenador"))
+                        ? null
+                        : reader.GetInt32("IdEntrenador")
+                };
+            }
+
+            return null;
         }
 
 
