@@ -1,12 +1,11 @@
 import caballo1 from "../assets/caballo1.jpg";
-import caballo2 from "../assets/caballo2.webp";
-import caballo3 from "../assets/caballo3.jpg";
 import userPhoto from "../assets/user.jpg";
 import logo from "../assets/logo.webp";
 import { Plus } from "lucide-react";
 import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import FormularioCaballo from "../components/FormularioCaballo";
 
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
@@ -22,7 +21,17 @@ export default function Dashboard() {
       );
       if (!res.ok) throw new Error("Error al cargar caballos");
       const data = await res.json();
-      setCaballos(data.caballos || []);
+      const rawCaballos = data.caballos || data;
+
+      const caballosNormalizados = rawCaballos.map((c) => ({
+        id: c.Id ?? c.id,
+        nombre: c.Nombre ?? c.nombre,
+        fotoUrl: c.Foto ?? c.foto,
+        edad: c.Edad ?? c.edad,
+        raza: c.Raza ?? c.raza,
+        color: c.Color ?? c.color,
+      }));
+      setCaballos(caballosNormalizados);
     } catch (error) {
       console.error("Error cargando caballos:", error);
     }
@@ -36,87 +45,6 @@ export default function Dashboard() {
   const handleLogout = () => {
     logout();
     navigate("/", { replace: true });
-  };
-
-  const FormularioCaballo = ({ onClose, onGuardado }) => {
-    const [form, setForm] = useState({
-      nombre: "",
-      edad: "",
-      raza: "",
-      fotoUrl: "",
-    });
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      try {
-        const res = await fetch("http://localhost:5000/api/caballos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...form,
-            usuarioId: usuario.id, // Asumiendo que necesitas asociarlo
-          }),
-        });
-        if (!res.ok) throw new Error("Error al guardar el caballo");
-        await fetchCaballos();
-        onGuardado();
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-6 rounded-xl shadow w-96 space-y-4"
-        >
-          <h2 className="text-lg font-bold mb-2">Nuevo Caballo</h2>
-          <input
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-            className="border w-full p-2 rounded"
-            required
-          />
-          <input
-            placeholder="Edad"
-            value={form.edad}
-            onChange={(e) => setForm({ ...form, edad: e.target.value })}
-            className="border w-full p-2 rounded"
-            required
-          />
-          <input
-            placeholder="Raza"
-            value={form.raza}
-            onChange={(e) => setForm({ ...form, raza: e.target.value })}
-            className="border w-full p-2 rounded"
-            required
-          />
-          <input
-            placeholder="URL de foto"
-            value={form.fotoUrl}
-            onChange={(e) => setForm({ ...form, fotoUrl: e.target.value })}
-            className="border w-full p-2 rounded"
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded bg-gray-300"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded bg-blue-500 text-white"
-            >
-              Guardar
-            </button>
-          </div>
-        </form>
-      </div>
-    );
   };
 
   return (
@@ -177,35 +105,23 @@ export default function Dashboard() {
 
         {/* Caballos */}
         <div className="col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {caballos.length === 0 &&
-            [caballo1, caballo2, caballo3].map((src, i) => (
+          
+          {caballos.map((caballo) => {
+            return (
               <div
-                key={i}
-                className="bg-white rounded-xl shadow overflow-hidden"
+                key={caballo.id}
+                onClick={() => navigate(`/caballo/${caballo.id}`)}
+                className="bg-white rounded-xl shadow overflow-hidden cursor-pointer hover:scale-[1.01] transition"
               >
                 <img
-                  src={src}
-                  alt={`Caballo ${i + 1}`}
+                  src={(caballo.fotoUrl || "").trim() || caballo1}
+                  alt={caballo.nombre}
                   className="w-full h-60 object-cover"
                 />
-                <p className="text-center py-1 font-medium">Caballo {i + 1}</p>
+                <p className="text-center py-1 font-medium">{caballo.nombre}</p>
               </div>
-            ))}
-
-          {caballos.map((caballo) => (
-            <div
-              key={caballo.id}
-              onClick={() => navigate(`/caballo/${caballo.id}`)}
-              className="bg-white rounded-xl shadow overflow-hidden cursor-pointer hover:scale-[1.01] transition"
-            >
-              <img
-                src={caballo.fotoUrl || caballo1}
-                alt={caballo.nombre}
-                className="w-full h-60 object-cover"
-              />
-              <p className="text-center py-1 font-medium">{caballo.nombre}</p>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Botón agregar */}
           <div
