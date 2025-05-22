@@ -1,6 +1,6 @@
 import caballo from "../assets/horse.jpg";
 import logo from "../assets/logo.webp";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../components/AuthContext";
@@ -12,6 +12,19 @@ export default function Login() {
   const navigate = useNavigate();
 
   const { usuario, login } = useAuth();
+
+  const location = useLocation();
+  const [mensajeExito, setMensajeExito] = useState("");
+
+  useEffect(() => {
+    // Si hay mensaje en el estado de la navegación, mostrarlo temporalmente
+    if (location.state?.mensaje) {
+      setMensajeExito(location.state.mensaje);
+      // Borra el mensaje después de 3 segundos
+      const timer = setTimeout(() => setMensajeExito(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   // Redirige automáticamente si ya hay un usuario logueado
   useEffect(() => {
@@ -72,6 +85,17 @@ export default function Login() {
           <h2 className="text-xl font-semibold text-center mb-4">
             Iniciar Sesión
           </h2>
+
+          {mensajeExito && (
+            <div
+              className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center transition-opacity duration-500"
+              style={{ opacity: mensajeExito ? 1 : 0 }}
+              role="alert"
+            >
+              {mensajeExito}
+            </div>
+          )}
+
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm text-slate-700 mb-1">
