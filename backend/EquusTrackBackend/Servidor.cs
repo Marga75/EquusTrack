@@ -29,6 +29,8 @@ namespace EquusTrackBackend
             string metodo = context.Request.HttpMethod;
             Console.WriteLine($"Petición a: {path} - Método: {metodo}");
 
+            AgregarCabecerasCORS(context.Response);
+
             if (metodo == "OPTIONS")
             {
                 EnviarOpcionesCORS(context.Response);
@@ -57,9 +59,25 @@ namespace EquusTrackBackend
                     await ProcesarCrearCaballo(context);
                     break;
 
+                case string p when p.StartsWith("/api/caballos/") && metodo == "GET":
+                    await ProcesarCaballoPorId(context);
+                    break;
+
                 default:
                     // Ruta no encontrada
                     context.Response.StatusCode = 404;
+                    context.Response.ContentType = "application/json";
+                    AgregarCabecerasCORS(context.Response);
+
+                    using (var writer = new StreamWriter(context.Response.OutputStream))
+                    {
+                        await writer.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            exito = false,
+                            mensaje = "Ruta no encontrada"
+                        }));
+                    }
+
                     context.Response.Close();
                     break;
             }
@@ -307,6 +325,56 @@ namespace EquusTrackBackend
             catch (Exception ex)
             {
                 EnviarErrorRespuesta(context, ex, "Error al crear caballo");
+            }
+        }
+
+        private static async Task ProcesarCaballoPorId(HttpListenerContext context)
+        {
+            try
+            {
+                string path = context.Request.Url.AbsolutePath;
+                string[] partes = path.Split('/');
+
+                if (partes.Length < 4 || !int.TryParse(partes[3], out int idCaballo))
+                {
+                    throw new Exception("ID de caballo inválido");
+                }
+
+                var caballo = Database.ObtenerCaballoPorId(idCaballo);
+
+                if (caballo == null)
+                {
+                    context.Response.StatusCode = 404;
+                    context.Response.ContentType = "application/json";
+                    AgregarCabecerasCORS(context.Response);
+
+                    using var writer = new StreamWriter(context.Response.OutputStream);
+                    await writer.WriteAsync(JsonSerializer.Serialize(new
+                    {
+                        exito = false,
+                        mensaje = "Caballo no encontrado"
+                    }));
+                    await writer.FlushAsync();
+                    context.Response.Close();
+                    return;
+                }
+
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "application/json";
+                AgregarCabecerasCORS(context.Response);
+
+                using var writerOk = new StreamWriter(context.Response.OutputStream);
+                await writerOk.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    exito = true,
+                    caballo
+                }));
+                await writerOk.FlushAsync();
+                context.Response.Close();
+            }
+            catch (Exception ex)
+            {
+                EnviarErrorRespuesta(context, ex, "Error al obtener detalle del caballo");
             }
         }
 
