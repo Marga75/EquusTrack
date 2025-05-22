@@ -112,9 +112,16 @@ namespace EquusTrackBackend
                 bool ok = false;
                 if (datos != null)
                 {
-                    ok = Database.RegistrarUsuario(
-                        datos.Nombre, datos.Apellido, datos.Email, datos.Password, datos.Rol
-                    );
+                    ok = Database.RegistrarUsuario
+                        (
+                            datos.Nombre,
+                            datos.Apellido,
+                            datos.Email,
+                            datos.Password,
+                            datos.Rol,
+                            datos.FechaNacimiento,
+                            datos.Genero
+                       );
                 }
 
                 context.Response.StatusCode = ok ? 200 : 400;
@@ -269,6 +276,8 @@ namespace EquusTrackBackend
             public string Email { get; set; }
             public string Password { get; set; }
             public string Rol { get; set; }
+            public DateTime FechaNacimiento { get; set; }
+            public string Genero { get; set; }
         }
 
         private class LoginRequest

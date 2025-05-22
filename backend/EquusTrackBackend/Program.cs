@@ -32,6 +32,7 @@ namespace EquusTrackBackend
         static async Task Main(string[] args)
         {
             Console.WriteLine("Iniciando backend...");
+            //Database.InsertarAdminSiNoExiste();
             await Servidor.Iniciar();
         }
 
