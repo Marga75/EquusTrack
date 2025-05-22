@@ -130,6 +130,7 @@ namespace EquusTrackBackend
 
                 var respuesta = JsonSerializer.Serialize(new
                 {
+                    exito = ok,
                     mensaje = ok ? "Usuario registrado correctamente" : "Error en el registro"
                 });
 

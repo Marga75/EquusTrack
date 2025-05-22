@@ -41,7 +41,7 @@ export default function Registro() {
       const result = text ? JSON.parse(text) : null;
 
       if (result?.exito) {
-        navigate("/"); // redirige a login
+        navigate("/", { state: { mensaje: "Usuario registrado con éxito" } }); // redirige a login
       } else {
         setError(result?.mensaje || "Error al registrar usuario");
       }
