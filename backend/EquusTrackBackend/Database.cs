@@ -115,7 +115,7 @@ namespace EquusTrackBackend
         }
 
 
-        public static Usuario? ValidarLogin(string email, string password)
+        /*public static Usuario? ValidarLogin(string email, string password)
         {
             using var conn = GetConnection();
             string query = "SELECT Id, Nombre, PasswordHash, Rol FROM Usuarios WHERE Email = @Email";
@@ -133,6 +133,36 @@ namespace EquusTrackBackend
                         Id = reader.GetInt32("Id"),
                         Nombre = reader.GetString("Nombre"),
                         Rol = reader.GetString("Rol")
+                    };
+                }
+            }
+
+            return null;
+        }*/
+
+        public static Usuario? ValidarLogin(string email, string password)
+        {
+            using var conn = GetConnection();
+            string query = @"SELECT Id, Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero 
+                     FROM Usuarios WHERE Email = @Email";
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                string hash = reader.GetString("PasswordHash");
+                if (BCrypt.Net.BCrypt.Verify(password, hash))
+                {
+                    return new Usuario
+                    {
+                        Id = reader.GetInt32("Id"),
+                        Nombre = reader.GetString("Nombre"),
+                        Apellido = reader.GetString("Apellido"),
+                        Email = reader.GetString("Email"),
+                        Rol = reader.GetString("Rol"),
+                        FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
+                        Genero = reader.GetString("Genero")
                     };
                 }
             }

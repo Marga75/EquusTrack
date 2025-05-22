@@ -177,7 +177,11 @@ namespace EquusTrackBackend
                         {
                             id = usuario.Id,
                             nombre = usuario.Nombre,
-                            rol = usuario.Rol
+                            apellido = usuario.Apellido,
+                            email = usuario.Email,
+                            rol = usuario.Rol,
+                            fechaNacimiento = usuario.FechaNacimiento.ToString("yyyy-MM-dd"),
+                            genero = usuario.Genero
                         }
                     }));
                 }
