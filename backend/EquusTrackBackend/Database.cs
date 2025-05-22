@@ -206,6 +206,38 @@ namespace EquusTrackBackend
             return lista;
         }
 
+        public static bool CrearCaballo(int idUsuario, string nombre, string edad, string raza, string color, string fotoUrl, int? idEntrenador = null)
+        {
+            using var conn = GetConnection();
+
+            // Validar que el usuario existe
+            string checkUserQuery = "SELECT COUNT(*) FROM Usuarios WHERE Id = @IdUsuario";
+            using var checkCmd = new MySqlCommand(checkUserQuery, conn);
+            checkCmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+            int userCount = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+            if (userCount == 0)
+            {
+                Console.WriteLine($"Error: El usuario con Id {idUsuario} no existe.");
+                return false;
+            }
+
+            string query = @"INSERT INTO Caballos (Nombre, Edad, Raza, Color, FotoUrl, IdUsuario, IdEntrenador)
+             VALUES (@Nombre, @Edad, @Raza, @Color, @FotoUrl, @IdUsuario, @IdEntrenador)";
+
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Nombre", nombre);
+            cmd.Parameters.AddWithValue("@Edad", edad ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@Raza", raza ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@Color", color ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@FotoUrl", fotoUrl ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+            cmd.Parameters.AddWithValue("@IdEntrenador", idEntrenador.HasValue ? idEntrenador.Value : (object)DBNull.Value);
+
+            int filasAfectadas = cmd.ExecuteNonQuery();
+            return filasAfectadas > 0;
+        }
+
 
     }
 }

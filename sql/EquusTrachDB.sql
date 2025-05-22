@@ -118,3 +118,10 @@ CREATE TABLE Recomendaciones (
     FOREIGN KEY (IdAlumno) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdEntrenamiento) REFERENCES Entrenamientos(Id)
 );
+
+-- Añadir IdEntrenador en Caballos
+ALTER TABLE Caballos 
+ADD COLUMN IdEntrenador INT NULL;
+
+ALTER TABLE Caballos 
+ADD CONSTRAINT FK_Caballos_Entrenador FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id) ON DELETE SET NULL;

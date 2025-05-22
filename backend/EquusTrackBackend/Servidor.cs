@@ -3,6 +3,7 @@ using System.Net;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace EquusTrackBackend
 {
@@ -50,6 +51,10 @@ namespace EquusTrackBackend
 
                 case string p when p.StartsWith("/api/caballos/usuario/") && metodo == "GET":
                     await ProcesarCaballosPorGet(context);
+                    break;
+
+                case "/api/caballos" when metodo == "POST":
+                    await ProcesarCrearCaballo(context);
                     break;
 
                 default:
@@ -260,6 +265,51 @@ namespace EquusTrackBackend
             }
         }
 
+        private static async Task ProcesarCrearCaballo(HttpListenerContext context)
+        {
+            try
+            {
+                using var reader = new StreamReader(context.Request.InputStream);
+                string body = await reader.ReadToEndAsync();
+                Console.WriteLine($"Crear Caballo - Datos recibidos: {body}");
+
+                var datos = JsonSerializer.Deserialize<CaballoNuevoRequest>(body,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (datos == null)
+                    throw new Exception("Datos inválidos");
+
+                bool creado = Database.CrearCaballo(
+                    datos.IdUsuario,
+                    datos.Nombre,
+                    datos.Edad,
+                    datos.Raza,
+                    datos.Color,
+                    datos.FotoUrl,
+                    datos.IdEntrenador
+                );
+
+                context.Response.StatusCode = creado ? 200 : 400;
+                context.Response.ContentType = "application/json";
+                AgregarCabecerasCORS(context.Response);
+
+                var respuesta = new
+                {
+                    exito = creado,
+                    mensaje = creado ? "Caballo creado correctamente" : "No se pudo crear el caballo"
+                };
+
+                using var writer = new StreamWriter(context.Response.OutputStream);
+                await writer.WriteAsync(JsonSerializer.Serialize(respuesta));
+                await writer.FlushAsync();
+                context.Response.Close();
+            }
+            catch (Exception ex)
+            {
+                EnviarErrorRespuesta(context, ex, "Error al crear caballo");
+            }
+        }
+
         private static void AgregarCabecerasCORS(HttpListenerResponse response)
         {
             response.AddHeader("Access-Control-Allow-Origin", "http://localhost:5173");
@@ -296,5 +346,18 @@ namespace EquusTrackBackend
             public int IdUsuario { get; set; }
             public string Rol { get; set; }
         }
+
+        private class CaballoNuevoRequest
+        {
+            [JsonPropertyName("usuarioId")]
+            public int IdUsuario { get; set; }
+            public string Nombre { get; set; }
+            public string Edad { get; set; }
+            public string Raza { get; set; }
+            public string Color { get; set; }
+            public string FotoUrl { get; set; }
+            public int? IdEntrenador { get; set; }
+        }
+
     }
 }
