@@ -45,8 +45,10 @@ namespace EquusTrackBackend
                 {
                     string hash = BCrypt.Net.BCrypt.HashPassword("admin1234");
 
-                    string insert = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol)
-                              VALUES ('Admin', 'Principal', 'admin@gestorcaballos.com', @Hash, 'Administrador')";
+                    /*string insert = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol)
+                              VALUES ('Admin', 'Principal', 'admin@gestorcaballos.com', @Hash, 'Administrador')";*/
+                    string insert = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero) VALUES ('Admin', 'Principal', 'admin@gestorcaballos.com', @Hash, 'Administrador', '1980-01-01', 'Otro')";
+
                     using var cmd = new MySqlCommand(insert, conn);
                     cmd.Parameters.AddWithValue("@Hash", hash);
                     cmd.ExecuteNonQuery();
@@ -59,7 +61,7 @@ namespace EquusTrackBackend
             }
         }
 
-        public static bool RegistrarUsuario(string nombre, string apellido, string email, string password, string rol)
+        public static bool RegistrarUsuario(string nombre, string apellido, string email, string password, string rol, DateTime fechaNacimiento, string genero)
         {
             if (rol != "Jinete" && rol != "Entrenador")
             {
@@ -80,16 +82,19 @@ namespace EquusTrackBackend
                     return false;
                 }
 
-                // Insertar nuevo usuario con hash
+                // Insertar nuevo usuario
                 string hash = BCrypt.Net.BCrypt.HashPassword(password);
-                string insertQuery = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol)
-                               VALUES (@Nombre, @Apellido, @Email, @Hash, @Rol)";
+                string insertQuery = @"INSERT INTO Usuarios 
+                    (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero)
+                    VALUES (@Nombre, @Apellido, @Email, @Hash, @Rol, @FechaNacimiento, @Genero)";
                 using var insertCmd = new MySqlCommand(insertQuery, conn);
                 insertCmd.Parameters.AddWithValue("@Nombre", nombre);
                 insertCmd.Parameters.AddWithValue("@Apellido", apellido);
                 insertCmd.Parameters.AddWithValue("@Email", email);
                 insertCmd.Parameters.AddWithValue("@Hash", hash);
                 insertCmd.Parameters.AddWithValue("@Rol", rol);
+                insertCmd.Parameters.AddWithValue("@FechaNacimiento", fechaNacimiento);
+                insertCmd.Parameters.AddWithValue("@Genero", genero);
                 insertCmd.ExecuteNonQuery();
 
                 Console.WriteLine("Usuario registrado correctamente.");
@@ -97,12 +102,18 @@ namespace EquusTrackBackend
             }
         }
 
+
         public class Usuario
         {
             public int Id { get; set; }
             public string Nombre { get; set; }
+            public string Apellido { get; set; }
+            public string Email { get; set; }
             public string Rol { get; set; }
+            public DateTime FechaNacimiento { get; set; }
+            public string Genero { get; set; }
         }
+
 
         public static Usuario? ValidarLogin(string email, string password)
         {

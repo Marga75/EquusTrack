@@ -6,13 +6,16 @@ USE EquusTrackDB;
 -- Tabla usuarios
 CREATE TABLE Usuarios (
     Id INT AUTO_INCREMENT PRIMARY KEY,
-    Nombre VARCHAR(100),
-    Apellido VARCHAR(100),
-    Email VARCHAR(100) UNIQUE,
-    PasswordHash VARCHAR(255),
+    Nombre VARCHAR(100) NOT NULL,
+    Apellido VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    PasswordHash VARCHAR(255) NOT NULL,
     Rol ENUM('Jinete', 'Entrenador', 'Administrador') NOT NULL,
+    FechaNacimiento DATE,
+    Genero ENUM('Masculino', 'Femenino', 'Otro'),
     FechaRegistro DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Tabla caballos
 CREATE TABLE Caballos (
