@@ -1,7 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
 using EquusTrackBackend.Models;
-using System;
-using BCrypt.Net;
 
 namespace EquusTrackBackend.Repositories
 {
@@ -10,6 +8,8 @@ namespace EquusTrackBackend.Repositories
         public static Usuario? ValidarLogin(string email, string password)
         {
             using var conn = Database.GetConnection();
+            conn.Open();
+
             string query = @"SELECT Id, Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero 
                              FROM Usuarios WHERE Email = @Email";
             using var cmd = new MySqlCommand(query, conn);
@@ -40,6 +40,8 @@ namespace EquusTrackBackend.Repositories
         public static bool Login(string email, string password)
         {
             using var conn = Database.GetConnection();
+            conn.Open();
+
             string query = "SELECT PasswordHash FROM Usuarios WHERE Email = @Email";
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@Email", email);
@@ -62,6 +64,7 @@ namespace EquusTrackBackend.Repositories
             }
 
             using var conn = Database.GetConnection();
+            conn.Open();
 
             // Verificar si el email ya existe
             string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = @Email";
@@ -96,6 +99,8 @@ namespace EquusTrackBackend.Repositories
         public static void InsertarAdminSiNoExiste()
         {
             using var conn = Database.GetConnection();
+            conn.Open();
+
             string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = 'admin@gestorcaballos.com'";
             using var checkCmd = new MySqlCommand(checkQuery, conn);
             int count = Convert.ToInt32(checkCmd.ExecuteScalar());

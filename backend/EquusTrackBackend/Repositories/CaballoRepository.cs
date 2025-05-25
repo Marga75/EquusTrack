@@ -9,6 +9,7 @@ namespace EquusTrackBackend.Repositories
         {
             var lista = new List<Caballo>();
             using var conn = Database.GetConnection();
+            conn.Open();
 
             string query = rol.ToLower() == "entrenador"
                 ? @"SELECT c.Id, c.Nombre, c.FotoUrl
@@ -39,6 +40,7 @@ namespace EquusTrackBackend.Repositories
         public static bool CrearCaballo(int idUsuario, string nombre, string raza, string color, string fotoUrl, DateTime? fechaNacimiento, DateTime? fechaAdopcion, int? idEntrenador = null)
         {
             using var conn = Database.GetConnection();
+            conn.Open();
 
             // Validar que el usuario existe
             string checkUserQuery = "SELECT COUNT(*) FROM Usuarios WHERE Id = @IdUsuario";
@@ -72,6 +74,8 @@ namespace EquusTrackBackend.Repositories
         public static Caballo? ObtenerCaballoPorId(int id)
         {
             using var conn = Database.GetConnection();
+            conn.Open();
+
             string query = @"SELECT Id, Nombre, Raza, Color, FotoUrl, IdUsuario, IdEntrenador, FechaNacimiento, FechaAdopcion 
                              FROM Caballos WHERE Id = @Id";
 
