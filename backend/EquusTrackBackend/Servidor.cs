@@ -300,10 +300,11 @@ namespace EquusTrackBackend
                 bool creado = Database.CrearCaballo(
                     datos.IdUsuario,
                     datos.Nombre,
-                    datos.Edad,
                     datos.Raza,
                     datos.Color,
                     datos.FotoUrl,
+                    datos.FechaNacimiento,
+                    datos.FechaAdopcion,
                     datos.IdEntrenador
                 );
 
@@ -420,10 +421,11 @@ namespace EquusTrackBackend
             [JsonPropertyName("usuarioId")]
             public int IdUsuario { get; set; }
             public string Nombre { get; set; }
-            public string Edad { get; set; }
             public string Raza { get; set; }
             public string Color { get; set; }
             public string FotoUrl { get; set; }
+            public DateTime FechaNacimiento { get; set; }
+            public DateTime FechaAdopcion { get; set; }
             public int? IdEntrenador { get; set; }
         }
 

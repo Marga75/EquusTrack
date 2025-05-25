@@ -86,16 +86,6 @@ CREATE TABLE Fisioterapia (
     FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE CASCADE
 );
 
--- Tabla progreso
-/* CREATE TABLE progreso (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    caballo_id INT,
-    fecha DATE,
-    rendimiento DECIMAL(5,2),
-    notas TEXT,
-    FOREIGN KEY (caballo_id) REFERENCES caballos(id)
-); */
-
 -- Tabla relación entrenador - alumno
 CREATE TABLE RelEntrenadorAlumno (
     Id INT AUTO_INCREMENT PRIMARY KEY,
@@ -125,3 +115,13 @@ ADD COLUMN IdEntrenador INT NULL;
 
 ALTER TABLE Caballos 
 ADD CONSTRAINT FK_Caballos_Entrenador FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id) ON DELETE SET NULL;
+
+-- Quitar columna Edad
+ALTER TABLE Caballos
+DROP COLUMN Edad;
+
+-- Añadir FechaNacimiento y FechaAdopcion
+ALTER TABLE Caballos
+ADD COLUMN FechaNacimiento DATE,
+ADD COLUMN FechaAdopcion DATE;
+

@@ -3,7 +3,8 @@ import { useState } from "react";
 export default function FormularioCaballo({ usuarioId, onClose, onGuardado }) {
   const [form, setForm] = useState({
     nombre: "",
-    edad: "",
+    fechaNacimiento: "",
+    fechaAdopcion: "",
     raza: "",
     color: "",
     fotoUrl: "",
@@ -35,39 +36,59 @@ export default function FormularioCaballo({ usuarioId, onClose, onGuardado }) {
         className="bg-white p-6 rounded-xl shadow w-96 space-y-4"
       >
         <h2 className="text-lg font-bold mb-2">Nuevo Caballo</h2>
+
         <input
+          type="text"
           placeholder="Nombre"
           value={form.nombre}
           onChange={(e) => setForm({ ...form, nombre: e.target.value })}
           className="border w-full p-2 rounded"
           required
         />
+
+        <label className="block text-sm font-medium">Fecha de nacimiento</label>
         <input
-          placeholder="Edad"
-          value={form.edad}
-          onChange={(e) => setForm({ ...form, edad: e.target.value })}
+          type="date"
+          value={form.fechaNacimiento}
+          onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })}
           className="border w-full p-2 rounded"
           required
         />
+
+        <label className="block text-sm font-medium">Fecha de adopción</label>
         <input
+          type="date"
+          value={form.fechaAdopcion}
+          onChange={(e) => setForm({ ...form, fechaAdopcion: e.target.value })}
+          className="border w-full p-2 rounded"
+          required
+        />
+
+        <input
+          type="text"
           placeholder="Raza"
           value={form.raza}
           onChange={(e) => setForm({ ...form, raza: e.target.value })}
           className="border w-full p-2 rounded"
           required
         />
+
         <input
+          type="text"
           placeholder="Color"
           value={form.color}
           onChange={(e) => setForm({ ...form, color: e.target.value })}
           className="border w-full p-2 rounded"
         />
+
         <input
+          type="text"
           placeholder="URL de foto"
           value={form.fotoUrl}
           onChange={(e) => setForm({ ...form, fotoUrl: e.target.value })}
           className="border w-full p-2 rounded"
         />
+
         <div className="flex justify-end gap-2">
           <button
             type="button"
