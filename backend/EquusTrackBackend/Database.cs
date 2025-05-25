@@ -9,7 +9,6 @@ namespace EquusTrackBackend
         public static MySqlConnection GetConnection()
         {
             var connection = new MySqlConnection(connectionString);
-            connection.Open();
             return connection;
         }
     }

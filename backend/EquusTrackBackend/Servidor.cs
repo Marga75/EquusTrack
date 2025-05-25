@@ -36,51 +36,113 @@ namespace EquusTrackBackend
 
             try
             {
+                // 1. Obtener caballos por usuario
+                if (path.StartsWith("/api/caballos/usuario/") && metodo == "GET")
+                {
+                    await ControladorCaballos.ProcesarCaballosPorGet(context);
+                    return;
+                }
+
+                // 2. Crear herrada, veterinario o fisio
+                if (path.StartsWith("/api/caballos/") && metodo == "POST")
+                {
+                    var segmentos = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                    if (segmentos.Length == 4)
+                    {
+                        bool parsed = int.TryParse(segmentos[2], out int idCaballo);
+                        string tipo = segmentos[3].ToLower();
+
+                        if (!parsed || idCaballo <= 0)
+                        {
+                            context.Response.StatusCode = 400;
+                            await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "ID de caballo inválido" });
+                            return;
+                        }
+
+                        switch (tipo)
+                        {
+                            case "herrador":
+                                await ControladorHerradas.ProcesarCrearHerrada(context, idCaballo);
+                                return;
+                            case "veterinario":
+                                await ControladorVeterinario.ProcesarCrearVeterinario(context, idCaballo);
+                                return;
+                            case "fisio":
+                                await ControladorFisioterapia.ProcesarCrearFisioterapia(context, idCaballo);
+                                return;
+                            default:
+                                context.Response.StatusCode = 404;
+                                await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Tipo no reconocido" });
+                                return;
+                        }
+                    }
+                }
+
+                // 3. Obtener últimas herradas, veterinario o fisio
+                if (path.StartsWith("/api/caballos/") && metodo == "GET")
+                {
+                    var segmentos = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                    if (segmentos.Length == 4)
+                    {
+                        bool parsed = int.TryParse(segmentos[2], out int idCaballo);
+                        string tipo = segmentos[3].ToLower();
+
+                        if (!parsed || idCaballo <= 0)
+                        {
+                            context.Response.StatusCode = 400;
+                            await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "ID de caballo inválido" });
+                            return;
+                        }
+
+                        switch (tipo)
+                        {
+                            case "herrador":
+                                await ControladorHerradas.ProcesarUltimasHerradas(context, idCaballo);
+                                return;
+                            case "veterinario":
+                                await ControladorVeterinario.ProcesarUltimasVisitasVeterinario(context, idCaballo);
+                                return;
+                            case "fisio":
+                                await ControladorFisioterapia.ProcesarUltimasSesionesFisio(context, idCaballo);
+                                return;
+                            default:
+                                context.Response.StatusCode = 404;
+                                await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Tipo no reconocido" });
+                                return;
+                        }
+                    }
+                }
+
+                // 4. Rutas simples (registro, login, crear caballo)
                 switch (path)
                 {
                     case "/registrar" when metodo == "POST":
                         await ControladorRegistro.ProcesarRegistro(context);
-                        break;
+                        return;
 
                     case "/login" when metodo == "POST":
                         await ControladorLogin.ProcesarLogin(context);
-                        break;
+                        return;
 
                     case "/caballos" when metodo == "POST":
                         await ControladorCaballos.ProcesarCaballos(context);
-                        break;
-
-                    case string p when p.StartsWith("/api/caballos/usuario/") && metodo == "GET":
-                        await ControladorCaballos.ProcesarCaballosPorGet(context);
-                        break;
+                        return;
 
                     case "/api/caballos" when metodo == "POST":
                         await ControladorCaballos.ProcesarCrearCaballo(context);
-                        break;
-
-                    case string p when p.StartsWith("/api/caballos/") && metodo == "GET":
-                        await ControladorCaballoDetalle.ProcesarCaballoPorId(context);
-                        break;
-
-                    default:
-                        // Ruta no encontrada
-                        context.Response.StatusCode = 404;
-                        context.Response.ContentType = "application/json";
-                        Helpers.AgregarCabecerasCORS(context.Response);
-
-                        using (var writer = new StreamWriter(context.Response.OutputStream))
-                        {
-                            await writer.WriteAsync(JsonSerializer.Serialize(new
-                            {
-                                exito = false,
-                                mensaje = "Ruta no encontrada"
-                            }));
-                        }
-
-                        context.Response.Close();
-
-                        break;
+                        return;
                 }
+
+                // 5. Obtener detalles de caballo por ID
+                if (path.StartsWith("/api/caballos/") && metodo == "GET")
+                {
+                    await ControladorCaballoDetalle.ProcesarCaballoPorId(context);
+                    return;
+                }
+
+                // 6. Ruta no encontrada
+                context.Response.StatusCode = 404;
+                await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Ruta no encontrada" });
             }
             catch (Exception ex)
             {

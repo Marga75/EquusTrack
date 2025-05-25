@@ -1,11 +1,11 @@
 import caballo1 from "../assets/caballo1.jpg";
 import userPhoto from "../assets/user.jpg";
-import logo from "../assets/logo.webp";
 import { Plus } from "lucide-react";
 import { useAuth } from "../components/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import FormularioCaballo from "../components/FormularioCaballo";
+import LayoutConHeader from "../components/Header";
 
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
@@ -47,36 +47,30 @@ export default function Dashboard() {
     navigate("/", { replace: true });
   };
 
+  const links = [
+    {label: "Entrenamientos", href: "/entrenamientos"},
+    {label: "Historial Entrenamientos", href: "/historial"},
+  ];
+
+  function calcularEdad(fechaNacimiento) {
+    const nacimiento = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    return edad;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Barra superior */}
-      <header className="flex flex-col items-center justify-between px-8 py-4 bg-white shadow">
-        <div className="mb-4">
-          <img src={logo} alt="Logo" className="w-80 mx-auto" />
-        </div>
-        <nav className="w-full flex items-center justify-between gap-6 text-slate-700 font-medium">
-          <div className="flex gap-6 mx-auto">
-            <a href="#" className="hover:text-blue-600">
-              Inicio
-            </a>
-            <a href="#" className="hover:text-blue-600">
-              Mis Caballos
-            </a>
-            <a href="#" className="hover:text-blue-600">
-              Entrenamientos
-            </a>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
-          >
-            Cerrar sesión
-          </button>
-        </nav>
-      </header>
+      <LayoutConHeader links={links} handleLogout={handleLogout}></LayoutConHeader>
 
       {/* Contenido principal */}
       <main className="p-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+        
         {/* Perfil usuario */}
         <div className="col-span-1 bg-white rounded-xl shadow p-6 flex flex-col items-center text-center">
           <img
@@ -95,7 +89,10 @@ export default function Dashboard() {
               <strong>Email:</strong> {usuario?.email}
             </li>
             <li>
-              <strong>Fecha de nacimiento:</strong> {usuario?.fechaNacimiento}
+              <strong>Fecha de nacimiento:</strong>{" "} {new Date(usuario?.fechaNacimiento).toLocaleDateString()}
+            </li>
+            <li>
+              <strong>Edad:</strong> {calcularEdad(usuario?.fechaNacimiento)} {" "} años
             </li>
             <li>
               <strong>Género:</strong> {usuario?.genero}

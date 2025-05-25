@@ -36,5 +36,18 @@ namespace EquusTrackBackend.Utils
             await writer.FlushAsync();
             context.Response.Close();
         }
+
+        public static async Task EnviarJson(HttpListenerResponse response, object contenido, int codigoEstado = 200)
+        {
+            response.StatusCode = codigoEstado;
+            response.ContentType = "application/json";
+
+            AgregarCabecerasCORS(response);
+
+            using var writer = new StreamWriter(response.OutputStream);
+            await writer.WriteAsync(JsonSerializer.Serialize(contenido));
+            await writer.FlushAsync();
+            response.Close();
+        }
     }
 }
