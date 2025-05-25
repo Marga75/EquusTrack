@@ -15,7 +15,24 @@ export default function CaballoDetalle() {
         const res = await fetch(`http://localhost:5000/api/caballos/${id}`);
         if (!res.ok) throw new Error("Error al cargar el detalle del caballo");
         const data = await res.json();
-        setCaballo(data);
+        console.log("Respuesta del backend:", data);
+
+        if (data.exito && data.caballo) {
+          const c = data.caballo;
+          setCaballo({
+            id: c.Id,
+            nombre: c.Nombre,
+            fechaNacimiento: c.FechaNacimiento,
+            raza: c.Raza,
+            color: c.Color,
+            fechaAdopcion: c.FechaAdopcion,
+            fotoUrl: c.FotoUrl,
+            idEntrenador: c.IdEntrenador,
+            idUsuario: c.IdUsuario,
+          });
+        } else {
+          setCaballo(null);
+        }
       } catch (error) {
         console.error(error);
       }
