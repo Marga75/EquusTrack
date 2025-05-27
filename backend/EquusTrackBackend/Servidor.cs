@@ -140,9 +140,23 @@ namespace EquusTrackBackend
                     return;
                 }
 
-                // 6. Ruta no encontrada
+                // 6. Rutas de entrenador/jinete
+                if ((path == "/entrenadores" && metodo == "GET") ||
+                    (path == "/relacion/jinete" && metodo == "POST") ||
+                    (path == "/relacion/estado" && metodo == "PUT") ||
+                    (path.StartsWith("/entrenador/jinete/") && metodo == "GET") ||
+                    (path.StartsWith("/entrenador/jinete/") && metodo == "GET") ||
+                    (path.StartsWith("/relacion/solicitudes/entrenador/") && metodo == "GET") ||
+                    (path.StartsWith("/relacion/alumnos/entrenador/") && metodo == "GET"))
+                {
+                    await ControladorEntrenador.Manejar(context);
+                    return;
+                }
+
+                // 7. Ruta no encontrada
                 context.Response.StatusCode = 404;
                 await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Ruta no encontrada" });
+
             }
             catch (Exception ex)
             {

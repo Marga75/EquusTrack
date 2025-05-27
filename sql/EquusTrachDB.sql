@@ -125,3 +125,7 @@ ALTER TABLE Caballos
 ADD COLUMN FechaNacimiento DATE,
 ADD COLUMN FechaAdopcion DATE;
 
+-- Añadir Estado y FechaSolicitud
+ALTER TABLE RelEntrenadorAlumno
+ADD COLUMN Estado ENUM('pendiente', 'aceptado', 'rechazado') NOT NULL DEFAULT 'pendiente',
+ADD COLUMN FechaSolicitud DATETIME DEFAULT CURRENT_TIMESTAMP;
