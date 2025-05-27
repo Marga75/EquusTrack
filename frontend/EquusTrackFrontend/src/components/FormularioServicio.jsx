@@ -136,17 +136,18 @@ export default function FormularioServicio({
           />
         </label>
 
-        <label className="block mb-2">
-          {campos[tipo].descripcion || "Descripción"}:
-          <textarea
-            className="border p-2 w-full mt-1"
-            value={descripcion}
-            placeholder={campos[tipo].descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            required={campos[tipo].mostrarDescripcion}
-            disabled={!campos[tipo].mostrarDescripcion}
-          />
-        </label>
+        {campos[tipo].mostrarDescripcion && (
+          <label className="block mb-2">
+            {campos[tipo].descripcion || "Descripción"}:
+            <textarea
+              className="border p-2 w-full mt-1"
+              value={descripcion}
+              placeholder={campos[tipo].descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              required
+            />
+          </label>
+        )}
 
         <label className="block mb-4">
           Costo:

@@ -58,7 +58,8 @@ export default function Login() {
 
   return (
     <div className="flex h-screen font-sans">
-      <div className="w-1/2 relative bg-black">
+      {/* Imágen y descripción */}
+      <div className="hidden md:block md:w-1/2 relative bg-black">
         <img
           src={caballo}
           alt="Caballo"
@@ -77,7 +78,8 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="w-1/2 flex items-center justify-center bg-gradient-to-br from-slate-200/70 to-slate-400/60 backdrop-blur-md">
+      {/* Formulario de inicio */}
+      <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-br from-slate-200/70 to-slate-400/60 backdrop-blur-md">
         <div className="max-w-sm w-full p-8 bg-white/10 backdrop-blur rounded-lg shadow-md">
           <div className="flex items-center gap-2 justify-center mb-6">
             <img src={logo} alt="logo" />

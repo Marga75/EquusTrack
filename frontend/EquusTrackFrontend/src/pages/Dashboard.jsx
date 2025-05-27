@@ -115,7 +115,7 @@ export default function Dashboard() {
                   alt={caballo.nombre}
                   className="w-full h-60 object-cover"
                 />
-                <p className="text-center py-1 font-medium">{caballo.nombre}</p>
+                <p className="text-center py-6 font-bold text-2xl">{caballo.nombre}</p>
               </div>
             );
           })}
