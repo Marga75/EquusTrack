@@ -33,14 +33,14 @@ export default function HistorialServicios({ idCaballo, tipo, recarga }) {
       <table className="w-full border-collapse border">
         <thead>
           <tr className="bg-gray-200">
-            <th className="border p-2 text-left">Fecha</th>
-            <th className="border p-2 text-left">Nombre</th>
+            <th className="border p-2 text-center">Fecha</th>
+            <th className="border p-2 text-center">Nombre</th>
             {tipo !== "herrador" && (
-              <th className="border p-2 text-left">Descripción</th>
+              <th className="border p-2 text-center">Descripción</th>
             )}
-            <th className="border p-2 text-right">Costo</th>
+            <th className="border p-2 text-center">Costo</th>
             {tipo === "herrador" && (
-              <th className="border p-2 text-left">Próxima herrada</th>
+              <th className="border p-2 text-center">Próxima herrada</th>
             )}
           </tr>
         </thead>
@@ -57,30 +57,30 @@ export default function HistorialServicios({ idCaballo, tipo, recarga }) {
           ) : (
             servicios.map((servicio) => (
               <tr key={servicio.Id || servicio.id}>
-                <td className="border p-2">
+                <td className="border p-2 text-center">
                   {new Date(
                     servicio.FechaHerrada ||
                       servicio.FechaVisita ||
                       servicio.FechaSesion
                   ).toLocaleDateString()}
                 </td>
-                <td className="border p-2">
+                <td className="border p-2 text-center">
                   {servicio.NombreHerrador ||
                     servicio.VeterinarioNombre ||
                     servicio.Profesional ||
                     "—"}
                 </td>
                 {tipo !== "herrador" && (
-                  <td className="border p-2">{servicio.Descripcion || "—"}</td>
+                  <td className="border p-2 text-center">{servicio.Descripcion || "—"}</td>
                 )}
-                <td className="border p-2 text-right">
+                <td className="border p-2 text-center">
                   {(typeof servicio.Costo === "number"
                     ? servicio.Costo.toFixed(2)
                     : servicio.Costo) || "0.00"}{" "}
                   €
                 </td>
                 {tipo === "herrador" && (
-                  <td className="border p-2">
+                  <td className="border p-2 text-center">
                     {servicio.ProximaFechaHerrada
                       ? new Date(
                           servicio.ProximaFechaHerrada
