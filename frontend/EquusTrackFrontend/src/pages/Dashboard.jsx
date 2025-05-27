@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import FormularioCaballo from "../components/FormularioCaballo";
 import LayoutConHeader from "../components/Header";
+import SeleccionarEntrenador from "../components/SeleccionarEntrenador";
+import EntrenadorPerfil from "../components/EntrenadorPerfil";
+import AlumnoCaballos from "../components/AlumnoCaballos";
 
 export default function Dashboard() {
   const { usuario, logout } = useAuth();
@@ -48,9 +51,30 @@ export default function Dashboard() {
   };
 
   const links = [
-    {label: "Entrenamientos", href: "/entrenamientos"},
-    {label: "Historial Entrenamientos", href: "/historial"},
+    { label: "Entrenamientos", href: "/entrenamientos" },
+    { label: "Historial Entrenamientos", href: "/historial" },
   ];
+
+  const [alumnos, setAlumnos] = useState([]); // Alumnos aceptados
+
+  useEffect(() => {
+    if (!usuario?.id || usuario.rol !== "Entrenador") return;
+
+    async function fetchAlumnos() {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/relacion/alumnos/entrenador/${usuario.id}`
+        );
+        if (!res.ok) throw new Error("Error al cargar alumnos");
+        const data = await res.json();
+        setAlumnos(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    fetchAlumnos();
+  }, [usuario]);
 
   function calcularEdad(fechaNacimiento) {
     const nacimiento = new Date(fechaNacimiento);
@@ -66,11 +90,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Barra superior */}
-      <LayoutConHeader links={links} handleLogout={handleLogout}></LayoutConHeader>
+      <LayoutConHeader
+        links={links}
+        handleLogout={handleLogout}
+      ></LayoutConHeader>
 
       {/* Contenido principal */}
       <main className="p-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-        
         {/* Perfil usuario */}
         <div className="col-span-1 bg-white rounded-xl shadow p-6 flex flex-col items-center text-center">
           <img
@@ -89,44 +115,66 @@ export default function Dashboard() {
               <strong>Email:</strong> {usuario?.email}
             </li>
             <li>
-              <strong>Fecha de nacimiento:</strong>{" "} {new Date(usuario?.fechaNacimiento).toLocaleDateString()}
+              <strong>Fecha de nacimiento:</strong>{" "}
+              {new Date(usuario?.fechaNacimiento).toLocaleDateString()}
             </li>
             <li>
-              <strong>Edad:</strong> {calcularEdad(usuario?.fechaNacimiento)} {" "} años
+              <strong>Edad:</strong> {calcularEdad(usuario?.fechaNacimiento)}{" "}
+              años
             </li>
             <li>
               <strong>Género:</strong> {usuario?.genero}
             </li>
           </ul>
+
+          {usuario?.rol === "Jinete" && (
+            <SeleccionarEntrenador usuario={usuario} />
+          )}
+          {usuario?.rol === "Entrenador" && (
+            <EntrenadorPerfil usuario={usuario} />
+          )}
         </div>
 
         {/* Caballos */}
-        <div className="col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          
-          {caballos.map((caballo) => {
-            return (
+        <div className="col-span-3">
+          <h3 className="mb-4 font-semibold text-xl">Tus caballos</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {caballos.map((c) => (
               <div
-                key={caballo.id}
-                onClick={() => navigate(`/caballo/${caballo.id}`)}
+                key={c.id}
+                onClick={() => navigate(`/caballo/${c.id}`)}
                 className="bg-white rounded-xl shadow overflow-hidden cursor-pointer hover:scale-[1.01] transition"
               >
                 <img
-                  src={(caballo.fotoUrl || "").trim() || caballo1}
-                  alt={caballo.nombre}
+                  src={(c.fotoUrl || "").trim() || caballo1}
+                  alt={c.nombre}
                   className="w-full h-60 object-cover"
                 />
-                <p className="text-center py-6 font-bold text-2xl">{caballo.nombre}</p>
+                <p className="text-center py-6 font-bold text-2xl">
+                  {c.nombre}
+                </p>
               </div>
-            );
-          })}
+            ))}
 
-          {/* Botón agregar */}
-          <div
-            onClick={() => setMostrarFormulario(true)}
-            className="bg-white rounded-xl shadow flex items-center justify-center h-48 cursor-pointer hover:bg-slate-100 transition"
-          >
-            <Plus className="w-10 h-10 text-slate-400" />
+            {/* Botón agregar */}
+            <div
+              onClick={() => setMostrarFormulario(true)}
+              className="bg-white rounded-xl shadow flex items-center justify-center h-48 cursor-pointer hover:bg-slate-100 transition"
+            >
+              <Plus className="w-10 h-10 text-slate-400" />
+            </div>
           </div>
+
+          {usuario?.rol === "Entrenador" && alumnos.length > 0 && (
+            <>
+              <h3 className="mt-10 mb-4 font-semibold text-xl">
+                Caballos de tus alumnos
+              </h3>
+              {alumnos.map((alumno) => (
+                <AlumnoCaballos key={alumno.id} alumno={alumno} />
+              ))}
+            </>
+          )}
         </div>
       </main>
 
