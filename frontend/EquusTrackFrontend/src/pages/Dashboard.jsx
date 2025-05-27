@@ -170,9 +170,15 @@ export default function Dashboard() {
               <h3 className="mt-10 mb-4 font-semibold text-xl">
                 Caballos de tus alumnos
               </h3>
-              {alumnos.map((alumno) => (
-                <AlumnoCaballos key={alumno.id} alumno={alumno} />
-              ))}
+              {alumnos.map((alumno) => {
+                console.log("Alumno recibido:", alumno);
+                return (
+                  <AlumnoCaballos
+                    key={alumno.Id || alumno.id}
+                    alumno={alumno}
+                  />
+                );
+              })}
             </>
           )}
         </div>

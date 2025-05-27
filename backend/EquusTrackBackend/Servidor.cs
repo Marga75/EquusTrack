@@ -145,7 +145,6 @@ namespace EquusTrackBackend
                     (path == "/relacion/jinete" && metodo == "POST") ||
                     (path == "/relacion/estado" && metodo == "PUT") ||
                     (path.StartsWith("/entrenador/jinete/") && metodo == "GET") ||
-                    (path.StartsWith("/entrenador/jinete/") && metodo == "GET") ||
                     (path.StartsWith("/relacion/solicitudes/entrenador/") && metodo == "GET") ||
                     (path.StartsWith("/relacion/alumnos/entrenador/") && metodo == "GET"))
                 {
