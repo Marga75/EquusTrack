@@ -1,12 +1,8 @@
 ﻿using EquusTrackBackend.Models;
 using EquusTrackBackend.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EquusTrackBackend.Controllers
 {
@@ -92,7 +88,7 @@ namespace EquusTrackBackend.Controllers
         {
             try
             {
-                var datos = await JsonSerializer.DeserializeAsync<Dictionary<string, object>>(context.Request.InputStream);
+                var datos = await JsonSerializer.DeserializeAsync<Dictionary<string, JsonElement>>(context.Request.InputStream);
                 if (datos == null || !datos.ContainsKey("idJinete") || !datos.ContainsKey("idEntrenador") || !datos.ContainsKey("estado"))
                 {
                     context.Response.StatusCode = 400;
@@ -101,9 +97,9 @@ namespace EquusTrackBackend.Controllers
                     return;
                 }
 
-                int idJinete = Convert.ToInt32(datos["idJinete"]);
-                int idEntrenador = Convert.ToInt32(datos["idEntrenador"]);
-                string estado = datos["estado"]!.ToString()!;
+                int idJinete = datos["idJinete"].GetInt32();
+                int idEntrenador = datos["idEntrenador"].GetInt32();
+                string estado = datos["estado"].GetString()!;
 
                 bool resultado = UsuarioRepository.ActualizarEstadoRelacion(idJinete, idEntrenador, estado);
 
@@ -111,8 +107,9 @@ namespace EquusTrackBackend.Controllers
                 await JsonSerializer.SerializeAsync(context.Response.OutputStream, new { exito = resultado });
                 context.Response.Close();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine("Error en ActualizarEstadoRelacion: " + ex.Message);
                 context.Response.StatusCode = 500;
                 await context.Response.OutputStream.WriteAsync(System.Text.Encoding.UTF8.GetBytes("Error interno"));
                 context.Response.Close();

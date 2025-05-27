@@ -8,7 +8,7 @@ namespace EquusTrackBackend.Utils
         public static void AgregarCabecerasCORS(HttpListenerResponse response)
         {
             response.AddHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-            response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+            response.AddHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT");
             response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
         }
 
