@@ -57,7 +57,7 @@ export default function SeleccionarEntrenador({ usuario }) {
   }
 
   useEffect(() => {
-    if (usuario?.id && usuario?.rol === "alumno") {
+    if (usuario?.id && usuario?.rol?.toLowerCase() === "jinete") {
       fetchRelacionEntrenador();
     }
   }, [usuario]);
@@ -67,8 +67,9 @@ export default function SeleccionarEntrenador({ usuario }) {
   return (
     <div className="mt-4 w-full text-center">
       {estadoRelacion === "aceptado" && entrenadorSeleccionado ? (
-        <p className="font-semibold text-green-600">
-          Entrenador: {entrenadorSeleccionado.nombre}
+        <p className="font-semibold">
+          Entrenador: {entrenadorSeleccionado.Nombre}{" "}
+          {entrenadorSeleccionado.Apellido}
         </p>
       ) : estadoRelacion === "pendiente" ? (
         <p className="font-semibold text-yellow-600">
