@@ -5,56 +5,52 @@ namespace EquusTrackBackend.Repositories
 {
     public class UsuarioRepository
     {
+        // Método auxiliar para mapear un usuario desde un MySqlDataReader
+        private static Usuario MapearUsuario(MySqlDataReader reader)
+        {
+            return new Usuario
+            {
+                Id = reader.GetInt32("Id"),
+                Nombre = reader.GetString("Nombre"),
+                Apellido = reader.GetString("Apellido"),
+                Email = reader.GetString("Email"),
+                Rol = reader.GetString("Rol"),
+                FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
+                Genero = reader.GetString("Genero")
+            };
+        }
+
+        // Valida el login verificando el email y la contraseña y devuelve el usuario si es correcto
         public static Usuario? ValidarLogin(string email, string password)
         {
-            using var conn = Database.GetConnection();
-            conn.Open();
-
-            string query = @"SELECT Id, Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero 
-                             FROM Usuarios WHERE Email = @Email";
-            using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@Email", email);
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
+            try
             {
-                string hash = reader.GetString("PasswordHash");
-                if (BCrypt.Net.BCrypt.Verify(password, hash))
+                using var conn = Database.GetConnection();
+                conn.Open();
+
+                string query = @"SELECT * FROM Usuarios WHERE Email = @Email";
+                using var cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Email", email);
+
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
                 {
-                    return new Usuario
+                    string hash = reader.GetString("PasswordHash");
+                    if (BCrypt.Net.BCrypt.Verify(password, hash))
                     {
-                        Id = reader.GetInt32("Id"),
-                        Nombre = reader.GetString("Nombre"),
-                        Apellido = reader.GetString("Apellido"),
-                        Email = reader.GetString("Email"),
-                        Rol = reader.GetString("Rol"),
-                        FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
-                        Genero = reader.GetString("Genero")
-                    };
+                        return MapearUsuario(reader);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error en ValidarLogin: " + ex.Message);
             }
 
             return null;
         }
 
-        public static bool Login(string email, string password)
-        {
-            using var conn = Database.GetConnection();
-            conn.Open();
-
-            string query = "SELECT PasswordHash FROM Usuarios WHERE Email = @Email";
-            using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@Email", email);
-
-            var result = cmd.ExecuteScalar();
-            if (result != null)
-            {
-                string storedHash = result.ToString();
-                return BCrypt.Net.BCrypt.Verify(password, storedHash);
-            }
-            return false;
-        }
-
+        // Registra un nuevo usuario si el email no está en uso y el rol es válido
         public static bool RegistrarUsuario(string nombre, string apellido, string email, string password, string rol, DateTime fechaNacimiento, string genero)
         {
             if (rol != "Jinete" && rol != "Entrenador")
@@ -63,65 +59,80 @@ namespace EquusTrackBackend.Repositories
                 return false;
             }
 
-            using var conn = Database.GetConnection();
-            conn.Open();
-
-            // Verificar si el email ya existe
-            string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = @Email";
-            using var checkCmd = new MySqlCommand(checkQuery, conn);
-            checkCmd.Parameters.AddWithValue("@Email", email);
-            int count = Convert.ToInt32(checkCmd.ExecuteScalar());
-            if (count > 0)
+            try
             {
-                Console.WriteLine("Ya existe un usuario con ese correo.");
+                using var conn = Database.GetConnection();
+                conn.Open();
+
+                // Verifica si el email ya existe
+                string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = @Email";
+                using var checkCmd = new MySqlCommand(checkQuery, conn);
+                checkCmd.Parameters.AddWithValue("@Email", email);
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+                if (count > 0)
+                {
+                    Console.WriteLine("Ya existe un usuario con ese correo.");
+                    return false;
+                }
+
+                // Crea un nuevo email
+                string hash = BCrypt.Net.BCrypt.HashPassword(password);
+                string insertQuery = @"INSERT INTO Usuarios 
+                    (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero)
+                    VALUES (@Nombre, @Apellido, @Email, @Hash, @Rol, @FechaNacimiento, @Genero)";
+                using var insertCmd = new MySqlCommand(insertQuery, conn);
+                insertCmd.Parameters.AddWithValue("@Nombre", nombre);
+                insertCmd.Parameters.AddWithValue("@Apellido", apellido);
+                insertCmd.Parameters.AddWithValue("@Email", email);
+                insertCmd.Parameters.AddWithValue("@Hash", hash);
+                insertCmd.Parameters.AddWithValue("@Rol", rol);
+                insertCmd.Parameters.AddWithValue("@FechaNacimiento", fechaNacimiento);
+                insertCmd.Parameters.AddWithValue("@Genero", genero);
+                insertCmd.ExecuteNonQuery();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al registrar usuario: " + ex.Message);
                 return false;
             }
-
-            // Insertar nuevo usuario
-            string hash = BCrypt.Net.BCrypt.HashPassword(password);
-            string insertQuery = @"INSERT INTO Usuarios 
-                (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero)
-                VALUES (@Nombre, @Apellido, @Email, @Hash, @Rol, @FechaNacimiento, @Genero)";
-            using var insertCmd = new MySqlCommand(insertQuery, conn);
-            insertCmd.Parameters.AddWithValue("@Nombre", nombre);
-            insertCmd.Parameters.AddWithValue("@Apellido", apellido);
-            insertCmd.Parameters.AddWithValue("@Email", email);
-            insertCmd.Parameters.AddWithValue("@Hash", hash);
-            insertCmd.Parameters.AddWithValue("@Rol", rol);
-            insertCmd.Parameters.AddWithValue("@FechaNacimiento", fechaNacimiento);
-            insertCmd.Parameters.AddWithValue("@Genero", genero);
-            insertCmd.ExecuteNonQuery();
-
-            Console.WriteLine("Usuario registrado correctamente.");
-            return true;
         }
 
+        // Inserta un administrador por defecto si no existe ya en la base de datos
         public static void InsertarAdminSiNoExiste()
         {
-            using var conn = Database.GetConnection();
-            conn.Open();
-
-            string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = 'admin@gestorcaballos.com'";
-            using var checkCmd = new MySqlCommand(checkQuery, conn);
-            int count = Convert.ToInt32(checkCmd.ExecuteScalar());
-
-            if (count == 0)
+            try
             {
-                string hash = BCrypt.Net.BCrypt.HashPassword("admin1234");
-                string insert = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero) 
-                                  VALUES ('Admin', 'Principal', 'admin@gestorcaballos.com', @Hash, 'Administrador', '1980-01-01', 'Otro')";
-                using var cmd = new MySqlCommand(insert, conn);
-                cmd.Parameters.AddWithValue("@Hash", hash);
-                cmd.ExecuteNonQuery();
-                Console.WriteLine("Administrador creado con éxito.");
+                using var conn = Database.GetConnection();
+                conn.Open();
+
+                string checkQuery = "SELECT COUNT(*) FROM Usuarios WHERE Email = 'admin@gestorcaballos.com'";
+                using var checkCmd = new MySqlCommand(checkQuery, conn);
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    string hash = BCrypt.Net.BCrypt.HashPassword("admin1234");
+                    string insert = @"INSERT INTO Usuarios (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero) 
+                                      VALUES ('Admin', 'Principal', 'admin@gestorcaballos.com', @Hash, 'Administrador', '1980-01-01', 'Otro')";
+                    using var cmd = new MySqlCommand(insert, conn);
+                    cmd.Parameters.AddWithValue("@Hash", hash);
+                    cmd.ExecuteNonQuery();
+                    Console.WriteLine("Administrador creado con éxito.");
+                }
+                else
+                {
+                    Console.WriteLine("Administrador ya existe.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("Administrador ya existe.");
+                Console.WriteLine("Error al insertar administrador: " + ex.Message);
             }
         }
 
-        // Obtener todos los entrenadores registrados
+        // Devuelve una lista con todos los usuarios cuyo rol es 'Entrenador'
         public static List<Usuario> ObtenerTodosEntrenadores()
         {
             var entrenadores = new List<Usuario>();
@@ -134,16 +145,7 @@ namespace EquusTrackBackend.Repositories
 
             while (reader.Read())
             {
-                entrenadores.Add(new Usuario
-                {
-                    Id = reader.GetInt32("Id"),
-                    Nombre = reader.GetString("Nombre"),
-                    Apellido = reader.GetString("Apellido"),
-                    Email = reader.GetString("Email"),
-                    Rol = reader.GetString("Rol"),
-                    FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
-                    Genero = reader.GetString("Genero")
-                });
+                entrenadores.Add(MapearUsuario(reader));
             }
 
             return entrenadores;
@@ -157,18 +159,20 @@ namespace EquusTrackBackend.Repositories
 
             // Verificar si ya existe una relación (pendiente o aceptada)
             string checkQuery = @"SELECT COUNT(*) FROM RelEntrenadorAlumno 
-              WHERE IdEntrenador = @IdEntrenador AND IdAlumno = @IdAlumno";
+                                  WHERE IdEntrenador = @IdEntrenador AND IdAlumno = @IdAlumno";
             using var checkCmd = new MySqlCommand(checkQuery, conn);
             checkCmd.Parameters.AddWithValue("@IdEntrenador", idEntrenador);
             checkCmd.Parameters.AddWithValue("@IdAlumno", idJinete);
             int count = Convert.ToInt32(checkCmd.ExecuteScalar());
 
             if (count > 0)
+            {
                 return false; // Ya existe
+            }
 
             // Insertar nueva relación como pendiente
             string insertQuery = @"INSERT INTO RelEntrenadorAlumno (IdEntrenador, IdAlumno, Estado)
-               VALUES (@IdEntrenador, @IdAlumno, 'pendiente')";
+                                   VALUES (@IdEntrenador, @IdAlumno, 'pendiente')";
             using var insertCmd = new MySqlCommand(insertQuery, conn);
             insertCmd.Parameters.AddWithValue("@IdEntrenador", idEntrenador);
             insertCmd.Parameters.AddWithValue("@IdAlumno", idJinete);
@@ -185,8 +189,8 @@ namespace EquusTrackBackend.Repositories
 
             // Actualizar estado
             string updateQuery = @"UPDATE RelEntrenadorAlumno 
-               SET Estado = @Estado 
-               WHERE IdEntrenador = @IdEntrenador AND IdAlumno = @IdAlumno";
+                                   SET Estado = @Estado 
+                                   WHERE IdEntrenador = @IdEntrenador AND IdAlumno = @IdAlumno";
             using var cmd = new MySqlCommand(updateQuery, conn);
             cmd.Parameters.AddWithValue("@Estado", nuevoEstado);
             cmd.Parameters.AddWithValue("@IdEntrenador", idEntrenador);
@@ -204,24 +208,15 @@ namespace EquusTrackBackend.Repositories
 
             // Obtener entrenador aceptado
             string query = @"SELECT u.* FROM Usuarios u
-         JOIN RelEntrenadorAlumno r ON r.IdEntrenador = u.Id
-         WHERE r.IdAlumno = @IdAlumno AND r.Estado = 'aceptado'";
+                             JOIN RelEntrenadorAlumno r ON r.IdEntrenador = u.Id
+                             WHERE r.IdAlumno = @IdAlumno AND r.Estado = 'aceptado'";
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@IdAlumno", idJinete);
 
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {
-                return new Usuario
-                {
-                    Id = reader.GetInt32("Id"),
-                    Nombre = reader.GetString("Nombre"),
-                    Apellido = reader.GetString("Apellido"),
-                    Email = reader.GetString("Email"),
-                    Rol = reader.GetString("Rol"),
-                    FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
-                    Genero = reader.GetString("Genero")
-                };
+                return MapearUsuario(reader);
             }
 
             return null;
@@ -235,11 +230,10 @@ namespace EquusTrackBackend.Repositories
             using var conn = Database.GetConnection();
             conn.Open();
 
-            string query = @"
-        SELECT u.*
-        FROM Usuarios u
-        JOIN RelEntrenadorAlumno r ON r.IdAlumno = u.Id
-        WHERE r.IdEntrenador = @IdEntrenador AND r.Estado = 'pendiente'";
+            string query = @"SELECT u.*
+                             FROM Usuarios u
+                             JOIN RelEntrenadorAlumno r ON r.IdAlumno = u.Id
+                             WHERE r.IdEntrenador = @IdEntrenador AND r.Estado = 'pendiente'";
 
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@IdEntrenador", idEntrenador);
@@ -248,16 +242,7 @@ namespace EquusTrackBackend.Repositories
 
             while (reader.Read())
             {
-                solicitudes.Add(new Usuario
-                {
-                    Id = reader.GetInt32("Id"),
-                    Nombre = reader.GetString("Nombre"),
-                    Apellido = reader.GetString("Apellido"),
-                    Email = reader.GetString("Email"),
-                    Rol = reader.GetString("Rol"),
-                    FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
-                    Genero = reader.GetString("Genero")
-                });
+                solicitudes.Add(MapearUsuario(reader));
             }
 
             return solicitudes;
@@ -271,11 +256,10 @@ namespace EquusTrackBackend.Repositories
             using var conn = Database.GetConnection();
             conn.Open();
 
-            string query = @"
-        SELECT u.*
-        FROM Usuarios u
-        JOIN RelEntrenadorAlumno r ON r.IdAlumno = u.Id
-        WHERE r.IdEntrenador = @IdEntrenador AND r.Estado = 'aceptado'";
+            string query = @"SELECT u.*
+                             FROM Usuarios u
+                             JOIN RelEntrenadorAlumno r ON r.IdAlumno = u.Id
+                             WHERE r.IdEntrenador = @IdEntrenador AND r.Estado = 'aceptado'";
 
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@IdEntrenador", idEntrenador);
@@ -284,16 +268,7 @@ namespace EquusTrackBackend.Repositories
 
             while (reader.Read())
             {
-                alumnos.Add(new Usuario
-                {
-                    Id = reader.GetInt32("Id"),
-                    Nombre = reader.GetString("Nombre"),
-                    Apellido = reader.GetString("Apellido"),
-                    Email = reader.GetString("Email"),
-                    Rol = reader.GetString("Rol"),
-                    FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
-                    Genero = reader.GetString("Genero")
-                });
+                alumnos.Add(MapearUsuario(reader));
             }
 
             return alumnos;
