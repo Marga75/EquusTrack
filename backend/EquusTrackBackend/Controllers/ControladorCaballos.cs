@@ -9,6 +9,7 @@ namespace EquusTrackBackend.Controllers
 {
     public static class ControladorCaballos
     {
+        // Procesa una solicitud POST para obtener los caballos de un usuario según su rol
         public static async Task ProcesarCaballos(HttpListenerContext context)
         {
             try
@@ -36,6 +37,7 @@ namespace EquusTrackBackend.Controllers
             }
         }
 
+        // Procesa una solicitud GET para obtener los caballos de un usuario desde la URL
         public static async Task ProcesarCaballosPorGet(HttpListenerContext context)
         {
             try
@@ -72,6 +74,7 @@ namespace EquusTrackBackend.Controllers
             }
         }
 
+        // Procesa una solicitud POST para crear un nuevo caballo en la base de datos
         public static async Task ProcesarCrearCaballo(HttpListenerContext context)
         {
             try

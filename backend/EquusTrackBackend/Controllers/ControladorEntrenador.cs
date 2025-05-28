@@ -8,6 +8,7 @@ namespace EquusTrackBackend.Controllers
 {
     public class ControladorEntrenador
     {
+        // Controla las rutas relacionadas con entrenadores y delega según el método HTTP y la ruta
         public static async Task Manejar(HttpListenerContext context)
         {
             string metodo = context.Request.HttpMethod;
@@ -45,6 +46,7 @@ namespace EquusTrackBackend.Controllers
             }
         }
 
+        // Obtiene y devuelve una lista de  todos los entrenadores regitrados
         private static async Task ObtenerTodosEntrenadores(HttpListenerContext context)
         {
             var entrenadores = UsuarioRepository.ObtenerTodosEntrenadores();
@@ -53,6 +55,7 @@ namespace EquusTrackBackend.Controllers
             context.Response.Close();
         }
 
+        // Recibe una solicitud de relación entre un jinete y un entrenador
         private static async Task SolicitarRelacionJineteEntrenador(HttpListenerContext context)
         {
             try
@@ -84,6 +87,7 @@ namespace EquusTrackBackend.Controllers
             }
         }
 
+        // Actualiza el estado de una relación entre jinete y un entrenador
         private static async Task ActualizarEstadoRelacion(HttpListenerContext context)
         {
             try
@@ -116,6 +120,7 @@ namespace EquusTrackBackend.Controllers
             }
         }
 
+        // Obtiene el entrenador asignado a un jinete específico
         private static async Task ObtenerEntrenadorDeJinete(HttpListenerContext context)
         {
             try
@@ -143,6 +148,7 @@ namespace EquusTrackBackend.Controllers
             }
         }
 
+        // Obtiene todas las solicitudes de relación pendientes para un entrenador
         private static async Task ObtenerSolicitudesEntrenador(HttpListenerContext context)
         {
             try
@@ -171,7 +177,8 @@ namespace EquusTrackBackend.Controllers
                 context.Response.Close();
             }
         }
-
+        
+        // Obtiene todos los jinetes que tienen relación activa con un entrenador
         private static async Task ObtenerAlumnosEntrenador(HttpListenerContext context)
         {
             try
