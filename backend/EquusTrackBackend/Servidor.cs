@@ -152,7 +152,71 @@ namespace EquusTrackBackend
                     return;
                 }
 
-                // 7. Ruta no encontrada
+                // 7. Entrenamientos
+                if (path.StartsWith("/api/entrenamientos"))
+                {
+                    if (metodo == "GET")
+                    {
+                        var segmentos = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                        if (segmentos.Length == 2) // /api/entrenamientos
+                        {
+                            // Listar todos los entrenamientos
+                            await ControladorEntrenamiento.ProcesarListarEntrenamientos(context);
+                            return;
+                        }
+                        else if (segmentos.Length == 3) // /api/entrenamientos/{id}
+                        {
+                            if (int.TryParse(segmentos[2], out int idEntrenamiento))
+                            {
+                                await ControladorEntrenamiento.ProcesarDetalleEntrenamiento(context, idEntrenamiento);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // 8. Historial entrenamientos
+                if (path.StartsWith("/api/historial"))
+                {
+                    var segmentos = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (metodo == "GET")
+                    {
+                        if (segmentos.Length == 2) // /api/historial?caballoId=xxx por query param
+                        {
+                            var query = context.Request.QueryString;
+                            string caballoIdStr = query["caballoId"];
+
+                            if (int.TryParse(caballoIdStr, out int idCaballo))
+                            {
+                                await ControladorHistorialEntrenamiento.ProcesarHistorialPorCaballo(context, idCaballo);
+                                return;
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = 400;
+                                await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "ID caballo inválido" });
+                                return;
+                            }
+                        }
+                        else if (segmentos.Length == 3) // /api/historial/{id}
+                        {
+                            if (int.TryParse(segmentos[2], out int idHistorial))
+                            {
+                                await ControladorHistorialEntrenamiento.ProcesarDetalleHistorial(context, idHistorial);
+                                return;
+                            }
+                        }
+                    }
+                    else if (metodo == "POST" && segmentos.Length == 2) // Crear historial /api/historial
+                    {
+                        await ControladorHistorialEntrenamiento.ProcesarCrearHistorial(context);
+                        return;
+                    }
+                }
+
+                // 9. Ruta no encontrada
                 context.Response.StatusCode = 404;
                 await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Ruta no encontrada" });
 
