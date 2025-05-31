@@ -32,26 +32,39 @@ CREATE TABLE Caballos (
 -- Tabla entrenamientos
 CREATE TABLE Entrenamientos (
     Id INT AUTO_INCREMENT PRIMARY KEY,
-    Titulo VARCHAR(100),
-    Tipo ENUM('PieATierra', 'Montado', 'Jinete'),
+    Titulo VARCHAR(100) NOT NULL,
+    Tipo ENUM('PieATierra', 'Montado', 'Jinete') NOT NULL,
+    Descripcion TEXT
+);
+
+-- Tabla ejercicios_enttrenamiento
+CREATE TABLE EjerciciosEntrenamiento (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    EntrenamientoId INT NOT NULL,
+    Orden INT NOT NULL,
+    Nombre VARCHAR(100) NOT NULL,
     Descripcion TEXT,
-    EsPredefinido BOOLEAN DEFAULT FALSE,
-    CreadorId INT, -- NULL si es predefinido
-    FOREIGN KEY (CreadorId) REFERENCES Usuarios(Id) ON DELETE SET NULL
+    DuracionSegundos INT,
+    Repeticiones INT,
+    TipoBloque ENUM('Calentamiento', 'Principal', 'VueltaCalma') DEFAULT 'Principal',
+    ImagenURL VARCHAR(255),
+    FOREIGN KEY (EntrenamientoId) REFERENCES Entrenamientos(Id) ON DELETE CASCADE
 );
 
 -- Tabla registro_entrenamientos
-CREATE TABLE HistorialEntrenamientos (
+CREATE TABLE RegistroEntrenamientos (
     Id INT AUTO_INCREMENT PRIMARY KEY,
-    IdCaballo INT,
-    IdEntrenamiento INT,
-    Fecha DATE,
+    IdCaballo INT NOT NULL,
+    IdEntrenamiento INT NOT NULL,
+    Fecha DATE NOT NULL,
     Notas TEXT,
-    Progreso INT, -- porcentaje o puntuación de seguimiento
+    Progreso INT,
+    RegistradoPorId INT,
+    Estado ENUM('Completado', 'Incompleto', 'Cancelado') DEFAULT 'Completado',
     FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE CASCADE,
-    FOREIGN KEY (IdEntrenamiento) REFERENCES Entrenamientos(Id) ON DELETE CASCADE
+    FOREIGN KEY (IdEntrenamiento) REFERENCES Entrenamientos(Id) ON DELETE CASCADE,
+    FOREIGN KEY (RegistradoPorId) REFERENCES Usuarios(Id) ON DELETE SET NULL
 );
-
 
 -- Tabla veterinario
 CREATE TABLE Veterinario (
@@ -97,7 +110,7 @@ CREATE TABLE RelEntrenadorAlumno (
 );
 
 -- Tabla recomendaciones de entrenamiento
-CREATE TABLE Recomendaciones (
+/* CREATE TABLE Recomendaciones (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     IdEntrenador INT,
     IdAlumno INT,
@@ -107,7 +120,7 @@ CREATE TABLE Recomendaciones (
     FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdAlumno) REFERENCES Usuarios(Id),
     FOREIGN KEY (IdEntrenamiento) REFERENCES Entrenamientos(Id)
-);
+); */
 
 -- Añadir IdEntrenador en Caballos
 ALTER TABLE Caballos 
