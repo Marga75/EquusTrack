@@ -37,7 +37,7 @@ CREATE TABLE Entrenamientos (
     Descripcion TEXT
 );
 
--- Tabla ejercicios_enttrenamiento
+-- Tabla ejercicios_entrenamiento
 CREATE TABLE EjerciciosEntrenamiento (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     EntrenamientoId INT NOT NULL,

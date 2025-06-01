@@ -7,6 +7,19 @@ namespace EquusTrackBackend.Controllers
 {
     public class ControladorEntrenamiento
     {
+        // Helper para enviar respuesta JSON con cabeceras CORS
+        private static async Task EnviarRespuestaJson(HttpListenerResponse response, object obj, int statusCode = 200)
+        {
+            response.StatusCode = statusCode;
+            response.ContentType = "application/json";
+            Helpers.AgregarCabecerasCORS(response);
+
+            using var writer = new StreamWriter(response.OutputStream);
+            await writer.WriteAsync(JsonSerializer.Serialize(obj));
+            await writer.FlushAsync();
+            response.Close();
+        }
+
         // Obtener todos los entrenamientos
         public static async Task ProcesarListarEntrenamientos(HttpListenerContext context)
         {
@@ -14,14 +27,7 @@ namespace EquusTrackBackend.Controllers
             {
                 var lista = EntrenamientoRepository.ObtenerTodos();
 
-                context.Response.StatusCode = 200;
-                context.Response.ContentType = "application/json";
-                Helpers.AgregarCabecerasCORS(context.Response);
-
-                using var writer = new StreamWriter(context.Response.OutputStream);
-                await writer.WriteAsync(JsonSerializer.Serialize(new { exito = true, entrenamientos = lista }));
-                await writer.FlushAsync();
-                context.Response.Close();
+                await EnviarRespuestaJson(context.Response, new { exito = true, entrenamientos = lista });
             }
             catch (Exception ex)
             {
@@ -37,19 +43,11 @@ namespace EquusTrackBackend.Controllers
                 var entrenamiento = EntrenamientoRepository.ObtenerPorId(idEntrenamiento);
                 if (entrenamiento == null)
                 {
-                    context.Response.StatusCode = 404;
-                    await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Entrenamiento no encontrado" });
+                    await EnviarRespuestaJson(context.Response, new { exito = false, mensaje = "Entrenamiento no encontrado" }, 404);
                     return;
                 }
 
-                context.Response.StatusCode = 200;
-                context.Response.ContentType = "application/json";
-                Helpers.AgregarCabecerasCORS(context.Response);
-
-                using var writer = new StreamWriter(context.Response.OutputStream);
-                await writer.WriteAsync(JsonSerializer.Serialize(new { exito = true, entrenamiento }));
-                await writer.FlushAsync();
-                context.Response.Close();
+                await EnviarRespuestaJson(context.Response, new { exito = true, entrenamiento });
             }
             catch (Exception ex)
             {

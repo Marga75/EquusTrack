@@ -12,7 +12,14 @@ namespace EquusTrackBackend.Repositories
             using var conn = Database.GetConnection();
             conn.Open();
 
-            string sql = "SELECT Id, Titulo, Tipo, Descripcion, Duracion, Imagen FROM Entrenamientos";
+            string sql = @"
+                SELECT e.Id, e.Titulo, e.Tipo, e.Descripcion, e.Imagen,
+                       COALESCE(SUM(ee.DuracionSegundos), 0) AS DuracionTotalSegundos
+                FROM Entrenamientos e
+                LEFT JOIN EjerciciosEntrenamiento ee ON e.Id = ee.EntrenamientoId
+                GROUP BY e.Id, e.Titulo, e.Tipo, e.Descripcion, e.Imagen
+                ORDER BY e.Titulo;
+            ";
 
             using var cmd = new MySqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
@@ -25,8 +32,8 @@ namespace EquusTrackBackend.Repositories
                     Titulo = reader.GetString("Titulo"),
                     Tipo = reader.GetString("Tipo"),
                     Descripcion = reader.IsDBNull(reader.GetOrdinal("Descripcion")) ? null : reader.GetString("Descripcion"),
-                    Duracion = reader.GetInt32("Duracion"),
-                    Imagen = reader.IsDBNull(reader.GetOrdinal("Imagen")) ? null : reader.GetString("Imagen"),
+                    Imagen = reader.GetString("Imagen"),
+                    DuracionTotalSegundos = reader.GetInt32("DuracionTotalSegundos") / 60
                 };
                 lista.Add(entrenamiento);
             }
@@ -34,7 +41,7 @@ namespace EquusTrackBackend.Repositories
             return lista;
         }
 
-        public static Entrenamiento? ObtenerPorId(int id)
+        public static EntrenamientoDetalle? ObtenerPorId(int id)
         {
             using var conn = Database.GetConnection();
             conn.Open();
@@ -48,7 +55,7 @@ namespace EquusTrackBackend.Repositories
 
             if (reader.Read())
             {
-                return new Entrenamiento
+                return new EntrenamientoDetalle
                 {
                     Id = reader.GetInt32("Id"),
                     Titulo = reader.GetString("Titulo"),
