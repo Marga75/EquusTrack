@@ -2,35 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import LayoutConHeader from "../components/Header";
 
-const entrenamientosMock = [
-  {
-    id: 1,
-    nombre: "Resistencia Básica",
-    tipo: "Pie a tierra",
-    duracion: 30,
-    descripcion: "Entrenamiento ideal para mejorar la resistencia general del caballo.",
-    imagen: "https://via.placeholder.com/400x200?text=Resistencia",
-    ejercicios: [
-      { id: 1, nombre: "Paso prolongado", duracionSeg: 300, descripcion: "Camina a paso lento pero constante." },
-      { id: 2, nombre: "Trote en círculo", duracionSeg: 600, descripcion: "Mantén el trote en círculos amplios." },
-      { id: 3, nombre: "Paso relajado", duracionSeg: 300, descripcion: "Relaja y camina tranquilamente para bajar ritmo." },
-    ],
-  },
-  {
-    id: 2,
-    nombre: "Técnica de Salto",
-    tipo: "Montado",
-    duracion: 20,
-    descripcion: "Técnica enfocada en mejorar los saltos con obstáculos.",
-    imagen: "https://via.placeholder.com/400x200?text=Salto",
-    ejercicios: [
-      { id: 1, nombre: "Calentamiento paso y trote", duracionSeg: 300, descripcion: "Calienta con paso y trote ligero." },
-      { id: 2, nombre: "Saltos en línea", duracionSeg: 600, descripcion: "Practica saltos consecutivos." },
-      { id: 3, nombre: "Vuelta a la calma", duracionSeg: 300, descripcion: "Relaja el caballo con paso suave." },
-    ],
-  },
-];
-
 function formatTime(segundos) {
   const min = Math.floor(segundos / 60);
   const seg = segundos % 60;
@@ -45,16 +16,39 @@ export default function EntrenamientoGuiado() {
   const [tiempoRestante, setTiempoRestante] = useState(0);
   const [activo, setActivo] = useState(false);
   const timerRef = useRef(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const data = entrenamientosMock.find((e) => e.id === parseInt(id));
-    setEntrenamiento(data);
-    setIndiceEjercicio(0);
+    async function fetchEntrenamiento() {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/entrenamientos/${id}`
+        );
+        if (!res.ok) throw new Error("Error al cargar el entrenamiento guiado");
+        const data = await res.json();
+        // Ajusta según cómo venga la respuesta
+        const entren = data.entrenamiento || data;
+        if (!entren) throw new Error("Entrenamiento no encontrado");
+        setEntrenamiento(entren);
+        setIndiceEjercicio(0);
+      } catch (err) {
+        console.error(err);
+        setError("No se pudo cargar el entrenamiento guiado");
+      }
+    }
+    fetchEntrenamiento();
   }, [id]);
 
   useEffect(() => {
-    if (entrenamiento) {
-      setTiempoRestante(entrenamiento.ejercicios[indiceEjercicio].duracionSeg);
+    if (
+      entrenamiento &&
+      entrenamiento.Ejercicios &&
+      entrenamiento.Ejercicios.length > 0
+    ) {
+      const duracionMinutos =
+        entrenamiento.Ejercicios[indiceEjercicio].DuracionSegundos ||
+        entrenamiento.Ejercicios[indiceEjercicio].duracionSeg;
+      setTiempoRestante(duracionMinutos * 60); // Pasar minutos a segundos
       setActivo(false);
       clearInterval(timerRef.current);
     }
@@ -66,8 +60,7 @@ export default function EntrenamientoGuiado() {
         setTiempoRestante((t) => t - 1);
       }, 1000);
     } else if (tiempoRestante === 0 && activo) {
-      // Pasar al siguiente ejercicio automáticamente
-      if (indiceEjercicio < entrenamiento.ejercicios.length - 1) {
+      if (indiceEjercicio < entrenamiento.Ejercicios.length - 1) {
         setIndiceEjercicio((i) => i + 1);
       } else {
         alert("¡Has completado el entrenamiento!");
@@ -78,26 +71,41 @@ export default function EntrenamientoGuiado() {
     return () => clearInterval(timerRef.current);
   }, [activo, tiempoRestante, indiceEjercicio, entrenamiento, id, navigate]);
 
+  if (error) return <p className="p-6 text-red-600">{error}</p>;
   if (!entrenamiento) return <p className="p-6">Cargando entrenamiento...</p>;
 
-  const ejercicioActual = entrenamiento.ejercicios[indiceEjercicio];
+  const ejercicioActual = entrenamiento.Ejercicios[indiceEjercicio];
 
   const links = [
     { label: "Inicio", href: "/dashboard" },
     { label: "Entrenamientos", href: "/entrenamientos" },
-    { label: entrenamiento.nombre, href: `/entrenamientos/${id}` },
+    {
+      label: entrenamiento.Nombre || entrenamiento.nombre,
+      href: `/entrenamientos/${id}`,
+    },
   ];
 
   return (
     <div>
-      <LayoutConHeader links={links} handleLogout={() => navigate("/", { replace: true })} />
+      <LayoutConHeader
+        links={links}
+        handleLogout={() => navigate("/", { replace: true })}
+      />
       <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-4 text-center">{entrenamiento.nombre} - Modo Guiado</h1>
+        <h1 className="text-3xl font-bold mb-4 text-center">
+          {entrenamiento.Nombre || entrenamiento.nombre} - Modo Guiado
+        </h1>
         <div className="bg-white shadow-md rounded-lg p-6 text-center">
-          <h2 className="text-2xl font-semibold mb-2">{ejercicioActual.nombre}</h2>
-          <p className="text-gray-700 mb-4">{ejercicioActual.descripcion}</p>
+          <h2 className="text-2xl font-semibold mb-2">
+            {ejercicioActual.Nombre || ejercicioActual.nombre}
+          </h2>
+          <p className="text-gray-700 mb-4">
+            {ejercicioActual.Descripcion || ejercicioActual.descripcion}
+          </p>
 
-          <div className="text-5xl font-mono mb-6">{formatTime(tiempoRestante)}</div>
+          <div className="text-5xl font-mono mb-6">
+            {formatTime(tiempoRestante)}
+          </div>
 
           <div className="flex justify-center gap-4 mb-6">
             {!activo ? (
@@ -118,7 +126,10 @@ export default function EntrenamientoGuiado() {
             <button
               onClick={() => {
                 setActivo(false);
-                setTiempoRestante(ejercicioActual.duracionSeg);
+                const duracionMinutos =
+                  ejercicioActual.DuracionSegundos ||
+                  ejercicioActual.duracionSeg;
+                setTiempoRestante(duracionMinutos * 60); // Pasar minutos a segundos
               }}
               className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
@@ -145,7 +156,7 @@ export default function EntrenamientoGuiado() {
             <button
               onClick={() => {
                 setActivo(false);
-                if (indiceEjercicio < entrenamiento.ejercicios.length - 1) {
+                if (indiceEjercicio < entrenamiento.Ejercicios.length - 1) {
                   setIndiceEjercicio((i) => i + 1);
                 } else {
                   alert("¡Has completado el entrenamiento!");
@@ -154,7 +165,9 @@ export default function EntrenamientoGuiado() {
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {indiceEjercicio === entrenamiento.ejercicios.length - 1 ? "Finalizar" : "Siguiente"}
+              {indiceEjercicio === entrenamiento.Ejercicios.length - 1
+                ? "Finalizar"
+                : "Siguiente"}
             </button>
           </div>
         </div>
