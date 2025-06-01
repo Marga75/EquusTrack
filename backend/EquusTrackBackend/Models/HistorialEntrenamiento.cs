@@ -3,7 +3,7 @@
     public class HistorialEntrenamiento
     {
         public int Id { get; set; }
-        public int IdCaballo { get; set; }
+        public int? IdCaballo { get; set; }
         public int IdEntrenamiento { get; set; }
         public DateTime Fecha { get; set; }
         public string? Notas { get; set; }
