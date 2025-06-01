@@ -2,46 +2,34 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LayoutConHeader from "../components/Header";
 
-const entrenamientosMock = [
-  {
-    id: 1,
-    nombre: "Resistencia Básica",
-    tipo: "Pie a tierra",
-    duracion: 30,
-    descripcion: "Entrenamiento ideal para mejorar la resistencia general del caballo.",
-    imagen: "https://via.placeholder.com/400x200?text=Resistencia",
-    ejercicios: [
-      { id: 1, nombre: "Paso prolongado", duracion: "5 min" },
-      { id: 2, nombre: "Trote en círculo", duracion: "10 min" },
-      { id: 3, nombre: "Paso relajado", duracion: "5 min" },
-    ],
-  },
-  {
-    id: 2,
-    nombre: "Técnica de Salto",
-    tipo: "Montado",
-    duracion: 20,
-    descripcion: "Técnica enfocada en mejorar los saltos con obstáculos.",
-    imagen: "https://via.placeholder.com/400x200?text=Salto",
-    ejercicios: [
-      { id: 1, nombre: "Calentamiento paso y trote", duracion: "5 min" },
-      { id: 2, nombre: "Saltos en línea", duracion: "10 min" },
-      { id: 3, nombre: "Vuelta a la calma", duracion: "5 min" },
-    ],
-  },
-];
-
 export default function EntrenamientoDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [entrenamiento, setEntrenamiento] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulación de carga desde API
-    const data = entrenamientosMock.find((e) => e.id === parseInt(id));
-    setEntrenamiento(data);
+    async function fetchEntrenamientoDetalle() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/entrenamientos/${id}`);
+        if (!res.ok) throw new Error("Error al cargar el detalle del entrenamiento");
+        const data = await res.json();
+        console.log("Respuesta del backend:", data);
+
+        if (!data || typeof data !== "object") {
+          throw new Error("Datos inválidos");
+        }
+
+        setEntrenamiento(data.entrenamiento);
+      } catch (error) {
+        console.error(error);
+        setError("No se pudo cargar el entrenamiento");
+      }
+    }
+    fetchEntrenamientoDetalle();
   }, [id]);
 
+  if (error) return <p className="p-6 text-red-600">{error}</p>;
   if (!entrenamiento) return <p className="p-6">Cargando entrenamiento...</p>;
 
   const links = [
@@ -51,27 +39,38 @@ export default function EntrenamientoDetalle() {
 
   return (
     <div>
-      <LayoutConHeader links={links} handleLogout={() => navigate("/", { replace: true })} />
+      <LayoutConHeader
+        links={links}
+        handleLogout={() => navigate("/", { replace: true })}
+      />
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-4 text-center">{entrenamiento.nombre}</h1>
+        <h1 className="text-3xl font-bold mb-4 text-center">
+          {entrenamiento.Nombre}
+        </h1>
         <img
-          src={entrenamiento.imagen}
-          alt={entrenamiento.nombre}
+          src={entrenamiento.Imagen || "/imagen-default.jpg"}
+          alt={entrenamiento.Nombre}
           className="w-full h-64 object-cover rounded-xl mb-4"
         />
-        <p className="text-gray-700 mb-2">{entrenamiento.descripcion}</p>
+        <p className="text-gray-700 mb-2">{entrenamiento.Descripcion}</p>
         <p className="text-sm text-gray-600 mb-6">
-          Tipo: <strong>{entrenamiento.tipo}</strong> · Duración: <strong>{entrenamiento.duracion} min</strong>
+          Tipo: <strong>{entrenamiento.Tipo}</strong> · Duración:{" "}
+          <strong>{entrenamiento.DuracionTotalSegundos} min</strong>
         </p>
 
         <h2 className="text-xl font-semibold mb-2">Ejercicios</h2>
-        <ul className="space-y-2 mb-6">
-          {entrenamiento.ejercicios.map((ej) => (
-            <li key={ej.id} className="bg-gray-100 p-3 rounded-lg shadow-sm">
-              <strong>{ej.nombre}</strong> — <span className="text-sm text-gray-600">{ej.duracion}</span>
-            </li>
-          ))}
-        </ul>
+        {Array.isArray(entrenamiento.Ejercicios) && entrenamiento.Ejercicios.length > 0 ? (
+          <ul className="space-y-2 mb-6">
+            {entrenamiento.Ejercicios.map((ej) => (
+              <li key={ej.Id} className="bg-gray-100 p-3 rounded-lg shadow-sm">
+                <strong>{ej.Nombre}</strong> —{" "}
+                <span className="text-sm text-gray-600">{ej.DuracionSegundos}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500 italic mb-6">Este entrenamiento no tiene ejercicios.</p>
+        )}
 
         <button
           onClick={() => navigate(`/entrenamientos/${id}/guiado`)}

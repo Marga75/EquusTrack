@@ -15,5 +15,7 @@ namespace EquusTrackBackend.Models
         // Duración total en segundos (suma de ejercicios)
         public int DuracionTotalSegundos { get; set; }
         public string? Imagen { get; set; }
+
+        public List<EjercicioEntrenamiento> Ejercicios { get; set; }
     }
 }
