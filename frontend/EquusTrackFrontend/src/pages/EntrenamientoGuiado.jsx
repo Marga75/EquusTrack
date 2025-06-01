@@ -15,8 +15,17 @@ export default function EntrenamientoGuiado() {
   const [indiceEjercicio, setIndiceEjercicio] = useState(0);
   const [tiempoRestante, setTiempoRestante] = useState(0);
   const [activo, setActivo] = useState(false);
-  const timerRef = useRef(null);
+  const [finalizado, setFinalizado] = useState(false);
+  const [notas, setNotas] = useState("");
+  const [exito, setExito] = useState(false);
   const [error, setError] = useState(null);
+  const [caballos, setCaballos] = useState([]);
+  const [caballoSeleccionado, setCaballoSeleccionado] = useState(null);
+  const timerRef = useRef(null);
+
+  const usuarioGuardado = localStorage.getItem("usuario");
+  const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+  const idUsuario = usuario ? usuario.id : null;
 
   useEffect(() => {
     async function fetchEntrenamiento() {
@@ -26,7 +35,6 @@ export default function EntrenamientoGuiado() {
         );
         if (!res.ok) throw new Error("Error al cargar el entrenamiento guiado");
         const data = await res.json();
-        // Ajusta según cómo venga la respuesta
         const entren = data.entrenamiento || data;
         if (!entren) throw new Error("Entrenamiento no encontrado");
         setEntrenamiento(entren);
@@ -36,8 +44,31 @@ export default function EntrenamientoGuiado() {
         setError("No se pudo cargar el entrenamiento guiado");
       }
     }
+
+    async function fetchCaballos() {
+      if (!idUsuario) {
+        console.warn("No hay usuario logueado, no se cargan caballos");
+        return;
+      }
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/caballos/usuario/${idUsuario}`
+        );
+        if (!res.ok) throw new Error("Error al cargar caballos");
+        const data = await res.json();
+        const listaCaballos = data.caballos || data;
+        setCaballos(listaCaballos);
+        if (listaCaballos.length > 0) {
+          setCaballoSeleccionado(listaCaballos[0].Id || listaCaballos[0].id);
+        }
+      } catch (err) {
+        console.error("No se pudieron cargar los caballos", err);
+      }
+    }
+
     fetchEntrenamiento();
-  }, [id]);
+    fetchCaballos();
+  }, [id, idUsuario]);
 
   useEffect(() => {
     if (
@@ -63,13 +94,49 @@ export default function EntrenamientoGuiado() {
       if (indiceEjercicio < entrenamiento.Ejercicios.length - 1) {
         setIndiceEjercicio((i) => i + 1);
       } else {
-        alert("¡Has completado el entrenamiento!");
-        navigate(`/entrenamientos/${id}`);
+        setFinalizado(true);
       }
       setActivo(false);
     }
     return () => clearInterval(timerRef.current);
-  }, [activo, tiempoRestante, indiceEjercicio, entrenamiento, id, navigate]);
+  }, [activo, tiempoRestante, indiceEjercicio, entrenamiento]);
+
+  async function registrarEntrenamiento(progreso, estado = "Completado") {
+    if (!idUsuario) {
+      alert("Usuario no identificado. Debes iniciar sesión.");
+      return;
+    }
+
+    const datos = {
+      IdCaballo: caballoSeleccionado || null,
+      IdEntrenamiento: entrenamiento.Id || entrenamiento.id,
+      Fecha: new Date().toISOString().split("T")[0],
+      Notas: notas,
+      Progreso: progreso,
+      RegistradoPorId: idUsuario,
+      Estado: estado,
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/api/historial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      });
+
+      if (!res.ok) throw new Error("Error al registrar el entrenamiento");
+      const json = await res.json();
+      console.log("Registro guardado:", json);
+      setExito(true);
+
+      setTimeout(() => {
+        navigate(`/entrenamientos/${id}`);
+      }, 3000);
+    } catch (error) {
+      console.error("Error al guardar entrenamiento:", error);
+      alert("Ocurrió un error al guardar el entrenamiento.");
+    }
+  }
 
   if (error) return <p className="p-6 text-red-600">{error}</p>;
   if (!entrenamiento) return <p className="p-6">Cargando entrenamiento...</p>;
@@ -84,6 +151,74 @@ export default function EntrenamientoGuiado() {
       href: `/entrenamientos/${id}`,
     },
   ];
+
+  if (finalizado) {
+    const total = entrenamiento.Ejercicios.length;
+    const completados = indiceEjercicio + 1;
+    const progreso = Math.round((completados / total) * 100);
+
+    return (
+      <div>
+        <LayoutConHeader
+          links={links}
+          handleLogout={() => navigate("/", { replace: true })}
+        />
+        <div className="max-w-2xl mx-auto p-6 text-center bg-white shadow rounded">
+          <h1 className="text-2xl font-bold mb-4">Entrenamiento Finalizado</h1>
+          <p className="mb-2">
+            Progreso: <strong>{progreso}%</strong>
+          </p>
+
+          <label className="block mb-2 font-semibold">
+            Selecciona el caballo:
+          </label>
+          <select
+            value={caballoSeleccionado || ""}
+            onChange={(e) =>
+              setCaballoSeleccionado(
+                e.target.value === "" ? null : e.target.value
+              )
+            }
+            className="mb-4 p-2 border rounded w-full"
+          >
+            <option value="">Sin caballo</option>
+            {caballos.map((cab) => (
+              <option key={cab.Id || cab.id} value={cab.Id || cab.id}>
+                {cab.Nombre || cab.nombre}
+              </option>
+            ))}
+          </select>
+
+          {exito ? (
+            <p className="text-green-600 text-lg font-semibold">
+              Entrenamiento guardado exitosamente. Redirigiendo...
+            </p>
+          ) : (
+            <>
+              <textarea
+                className="w-full p-3 border rounded mb-4"
+                rows="4"
+                placeholder="Escribe tus notas aquí..."
+                value={notas}
+                onChange={(e) => setNotas(e.target.value)}
+              />
+              <button
+                onClick={() =>
+                  registrarEntrenamiento(
+                    progreso,
+                    progreso === 100 ? "Completado" : "Incompleto"
+                  )
+                }
+                className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Guardar en historial
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -164,22 +299,29 @@ export default function EntrenamientoGuiado() {
               Anterior
             </button>
 
-            <button
-              onClick={() => {
-                setActivo(false);
-                if (indiceEjercicio < entrenamiento.Ejercicios.length - 1) {
-                  setIndiceEjercicio((i) => i + 1);
-                } else {
-                  alert("¡Has completado el entrenamiento!");
-                  navigate(`/entrenamientos/${id}`);
-                }
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              {indiceEjercicio === entrenamiento.Ejercicios.length - 1
-                ? "Finalizar"
-                : "Siguiente"}
-            </button>
+            <div className="flex gap-4 justify-end mt-4">
+              {indiceEjercicio < entrenamiento.Ejercicios.length - 1 && (
+                <button
+                  onClick={() => {
+                    setActivo(false);
+                    setIndiceEjercicio((i) => i + 1);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Siguiente
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setActivo(false);
+                  setFinalizado(true);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Finalizar
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -99,7 +99,7 @@ namespace EquusTrackBackend.Repositories
                 VALUES (@IdCaballo, @IdEntrenamiento, @Fecha, @Notas, @Progreso, @RegistradoPorId, @Estado)";
 
             using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@IdCaballo", datos.IdCaballo);
+            cmd.Parameters.AddWithValue("@IdCaballo", datos.IdCaballo ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@IdEntrenamiento", datos.IdEntrenamiento);
             cmd.Parameters.AddWithValue("@Fecha", datos.Fecha);
             cmd.Parameters.AddWithValue("@Notas", datos.Notas ?? (object)DBNull.Value);
