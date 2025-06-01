@@ -6,14 +6,13 @@ using System.Threading.Tasks;
 
 namespace EquusTrackBackend.Models
 {
-    public class Entrenamiento
+    public class EntrenamientoDetalle
     {
         public int Id { get; set; }
         public string Titulo { get; set; } = null!;
         public string Tipo { get; set; } = null!;
         public string? Descripcion { get; set; }
-        // Duración total en segundos (suma de ejercicios)
-        public int DuracionTotalSegundos { get; set; }
+        public int Duracion { get; set; }
         public string? Imagen { get; set; }
     }
 }
