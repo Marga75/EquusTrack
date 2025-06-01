@@ -99,6 +99,17 @@ export default function EntrenamientoGuiado() {
           <h2 className="text-2xl font-semibold mb-2">
             {ejercicioActual.Nombre || ejercicioActual.nombre}
           </h2>
+
+          {ejercicioActual.ImagenURL && (
+            <img
+              src={ejercicioActual.ImagenURL}
+              alt={`Imagen de ${
+                ejercicioActual.Nombre || ejercicioActual.nombre
+              }`}
+              className="mx-auto mb-4 max-h-48 object-contain"
+            />
+          )}
+
           <p className="text-gray-700 mb-4">
             {ejercicioActual.Descripcion || ejercicioActual.descripcion}
           </p>
