@@ -16,7 +16,8 @@ namespace EquusTrackBackend.Repositories
                 Email = reader.GetString("Email"),
                 Rol = reader.GetString("Rol"),
                 FechaNacimiento = reader.GetDateTime("FechaNacimiento"),
-                Genero = reader.GetString("Genero")
+                Genero = reader.GetString("Genero"),
+                FotoUrl = reader.IsDBNull(reader.GetOrdinal("FotoUrl")) ? null : reader.GetString("FotoUrl"),
             };
         }
 
@@ -51,7 +52,7 @@ namespace EquusTrackBackend.Repositories
         }
 
         // Registra un nuevo usuario si el email no está en uso y el rol es válido
-        public static bool RegistrarUsuario(string nombre, string apellido, string email, string password, string rol, DateTime fechaNacimiento, string genero)
+        public static bool RegistrarUsuario(string nombre, string apellido, string email, string password, string rol, DateTime fechaNacimiento, string genero, string fotoUrl)
         {
             if (rol != "Jinete" && rol != "Entrenador")
             {
@@ -78,8 +79,8 @@ namespace EquusTrackBackend.Repositories
                 // Crea un nuevo email
                 string hash = BCrypt.Net.BCrypt.HashPassword(password);
                 string insertQuery = @"INSERT INTO Usuarios 
-                    (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero)
-                    VALUES (@Nombre, @Apellido, @Email, @Hash, @Rol, @FechaNacimiento, @Genero)";
+                    (Nombre, Apellido, Email, PasswordHash, Rol, FechaNacimiento, Genero, FotoUrl)
+                    VALUES (@Nombre, @Apellido, @Email, @Hash, @Rol, @FechaNacimiento, @Genero, @FotoUrl)";
                 using var insertCmd = new MySqlCommand(insertQuery, conn);
                 insertCmd.Parameters.AddWithValue("@Nombre", nombre);
                 insertCmd.Parameters.AddWithValue("@Apellido", apellido);
@@ -88,6 +89,7 @@ namespace EquusTrackBackend.Repositories
                 insertCmd.Parameters.AddWithValue("@Rol", rol);
                 insertCmd.Parameters.AddWithValue("@FechaNacimiento", fechaNacimiento);
                 insertCmd.Parameters.AddWithValue("@Genero", genero);
+                insertCmd.Parameters.AddWithValue("@FotoUrl", fotoUrl);
                 insertCmd.ExecuteNonQuery();
 
                 return true;

@@ -10,6 +10,7 @@ export default function Registro() {
     rol: "Jinete",
     fechaNacimiento: "",
     genero: "Masculino",
+    fotoUrl: "",
   });
 
   const [error, setError] = useState("");
@@ -127,6 +128,14 @@ export default function Registro() {
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro</option>
           </select>
+          <input
+            name="fotoUrl"
+            value={formData.fotoUrl}
+            onChange={handleChange}
+            type="text"
+            placeholder="URL de la foto de perfil (opcional)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
