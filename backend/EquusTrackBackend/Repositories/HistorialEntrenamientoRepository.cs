@@ -57,7 +57,15 @@ namespace EquusTrackBackend.Repositories
 
             string query = @"
                 SELECT re.Id, re.IdCaballo, re.IdEntrenamiento, re.Fecha, re.Notas, re.Progreso, re.Estado, re.RegistradoPorId,
-                       c.Nombre AS NombreCaballo, e.Nombre AS NombreEntrenamiento, u.Nombre AS NombreUsuario
+                    c.Nombre AS NombreCaballo,
+                    e.Titulo AS NombreEntrenamiento,
+                    e.Tipo,
+                    (
+                        SELECT IFNULL(SUM(ee.DuracionSegundos), 0)
+                        FROM EjerciciosEntrenamiento ee
+                        WHERE ee.EntrenamientoId = e.Id
+                    ) AS DuracionTotal,
+                    u.Nombre AS NombreUsuario
                 FROM RegistroEntrenamientos re
                 JOIN Caballos c ON re.IdCaballo = c.Id
                 JOIN Entrenamientos e ON re.IdEntrenamiento = e.Id
@@ -82,6 +90,8 @@ namespace EquusTrackBackend.Repositories
                     RegistradoPorId = reader.GetInt32("RegistradoPorId"),
                     NombreCaballo = reader.GetString("NombreCaballo"),
                     NombreEntrenamiento = reader.GetString("NombreEntrenamiento"),
+                    Tipo = reader.GetString("Tipo"),
+                    Duracion = reader.GetInt32("DuracionTotal") / 60,
                     NombreUsuario = reader.IsDBNull(reader.GetOrdinal("NombreUsuario")) ? null : reader.GetString("NombreUsuario")
                 };
             }
