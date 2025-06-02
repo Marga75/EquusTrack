@@ -33,15 +33,15 @@ namespace EquusTrackBackend.Repositories
                 lista.Add(new HistorialEntrenamiento
                 {
                     Id = reader.GetInt32("Id"),
-                    IdCaballo = reader.GetInt32("IdCaballo"),
+                    IdCaballo = reader.IsDBNull(reader.GetOrdinal("IdCaballo")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdCaballo")),
                     IdEntrenamiento = reader.GetInt32("IdEntrenamiento"),
                     Fecha = reader.GetDateTime("Fecha"),
                     Notas = reader.IsDBNull(reader.GetOrdinal("Notas")) ? null : reader.GetString("Notas"),
                     Progreso = reader.IsDBNull(reader.GetOrdinal("Progreso")) ? null : reader.GetInt32("Progreso"),
                     Estado = reader.GetString("Estado"),
                     RegistradoPorId = reader.GetInt32("RegistradoPorId"),
-                    NombreCaballo = reader.GetString("NombreCaballo"),
-                    NombreEntrenamiento = reader.GetString("NombreEntrenamiento"),
+                    NombreCaballo = reader.IsDBNull(reader.GetOrdinal("NombreCaballo")) ? null : reader.GetString("NombreCaballo"),
+                    NombreEntrenamiento = reader.IsDBNull(reader.GetOrdinal("NombreEntrenamiento")) ? null : reader.GetString("NombreEntrenamiento"),
                     NombreUsuario = reader.IsDBNull(reader.GetOrdinal("NombreUsuario")) ? null : reader.GetString("NombreUsuario")
                 });
             }
@@ -67,7 +67,7 @@ namespace EquusTrackBackend.Repositories
                     ) AS DuracionTotal,
                     u.Nombre AS NombreUsuario
                 FROM RegistroEntrenamientos re
-                JOIN Caballos c ON re.IdCaballo = c.Id
+                LEFT JOIN Caballos c ON re.IdCaballo = c.Id
                 JOIN Entrenamientos e ON re.IdEntrenamiento = e.Id
                 LEFT JOIN Usuarios u ON re.RegistradoPorId = u.Id
                 WHERE re.Id = @Id";
@@ -81,15 +81,15 @@ namespace EquusTrackBackend.Repositories
                 return new HistorialEntrenamiento
                 {
                     Id = reader.GetInt32("Id"),
-                    IdCaballo = reader.GetInt32("IdCaballo"),
+                    IdCaballo = reader.IsDBNull(reader.GetOrdinal("IdCaballo")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("IdCaballo")),
                     IdEntrenamiento = reader.GetInt32("IdEntrenamiento"),
                     Fecha = reader.GetDateTime("Fecha"),
                     Notas = reader.IsDBNull(reader.GetOrdinal("Notas")) ? null : reader.GetString("Notas"),
                     Progreso = reader.IsDBNull(reader.GetOrdinal("Progreso")) ? null : reader.GetInt32("Progreso"),
                     Estado = reader.GetString("Estado"),
                     RegistradoPorId = reader.GetInt32("RegistradoPorId"),
-                    NombreCaballo = reader.GetString("NombreCaballo"),
-                    NombreEntrenamiento = reader.GetString("NombreEntrenamiento"),
+                    NombreCaballo = reader.IsDBNull(reader.GetOrdinal("NombreCaballo")) ? null : reader.GetString("NombreCaballo"),
+                    NombreEntrenamiento = reader.IsDBNull(reader.GetOrdinal("NombreEntrenamiento")) ? null : reader.GetString("NombreEntrenamiento"),
                     Tipo = reader.GetString("Tipo"),
                     Duracion = reader.GetInt32("DuracionTotal") / 60,
                     NombreUsuario = reader.IsDBNull(reader.GetOrdinal("NombreUsuario")) ? null : reader.GetString("NombreUsuario")
@@ -115,7 +115,7 @@ namespace EquusTrackBackend.Repositories
             cmd.Parameters.AddWithValue("@Fecha", datos.Fecha);
             cmd.Parameters.AddWithValue("@Notas", datos.Notas ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@Progreso", datos.Progreso ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@RegistradoPorId", datos.RegistradoPorId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@RegistradoPorId", datos.RegistradoPorId);
             cmd.Parameters.AddWithValue("@Estado", datos.Estado);
 
             int filas = cmd.ExecuteNonQuery();
