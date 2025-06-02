@@ -9,12 +9,12 @@ namespace EquusTrackBackend.Controllers
 {
     public static class ControladorHistorialEntrenamiento
     {
-        // Obtener historial de entrenamientos de un caballo
-        public static async Task ProcesarHistorialPorCaballo(HttpListenerContext context, int idCaballo)
+        // Obtener historial de entrenamientos de un jinete
+        public static async Task ProcesarHistorialPorJinete(HttpListenerContext context, int idJinete)
         {
             try
             {
-                List<HistorialEntrenamiento> historial = HistorialEntrenamientoRepository.ObtenerHistorialPorCaballo(idCaballo);
+                List<HistorialEntrenamiento> historial = HistorialEntrenamientoRepository.ObtenerHistorialPorJinete(idJinete);
 
                 context.Response.StatusCode = 200;
                 context.Response.ContentType = "application/json";
@@ -27,7 +27,7 @@ namespace EquusTrackBackend.Controllers
             }
             catch (Exception ex)
             {
-                await Helpers.EnviarErrorRespuesta(context, ex, "Error al obtener historial del caballo");
+                await Helpers.EnviarErrorRespuesta(context, ex, "Error al obtener historial del jinete");
             }
         }
 

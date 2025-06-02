@@ -6,8 +6,8 @@ namespace EquusTrackBackend.Repositories
 {
     public class HistorialEntrenamientoRepository
     {
-        // Obtener historial por ID de caballo
-        public static List<HistorialEntrenamiento> ObtenerHistorialPorCaballo(int idCaballo)
+        // Obtener historial por ID de jinete
+        public static List<HistorialEntrenamiento> ObtenerHistorialPorJinete(int idJinete)
         {
             var lista = new List<HistorialEntrenamiento>();
             using var conn = Database.GetConnection();
@@ -15,16 +15,17 @@ namespace EquusTrackBackend.Repositories
 
             string query = @"
                 SELECT re.Id, re.IdCaballo, re.IdEntrenamiento, re.Fecha, re.Notas, re.Progreso, re.Estado, re.RegistradoPorId,
-                       c.Nombre AS NombreCaballo, e.Nombre AS NombreEntrenamiento, u.Nombre AS NombreUsuario
+                    c.Nombre AS NombreCaballo, e.Titulo AS NombreEntrenamiento, u.Nombre AS NombreUsuario
                 FROM RegistroEntrenamientos re
-                JOIN Caballos c ON re.IdCaballo = c.Id
+                LEFT JOIN Caballos c ON re.IdCaballo = c.Id
                 JOIN Entrenamientos e ON re.IdEntrenamiento = e.Id
                 LEFT JOIN Usuarios u ON re.RegistradoPorId = u.Id
-                WHERE re.IdCaballo = @IdCaballo
-                ORDER BY re.Fecha DESC";
+                WHERE re.RegistradoPorId = @RegistradoPorId
+                ORDER BY re.Fecha DESC
+            ";
 
             using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@IdCaballo", idCaballo);
+            cmd.Parameters.AddWithValue("@RegistradoPorId", idJinete);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -38,7 +39,7 @@ namespace EquusTrackBackend.Repositories
                     Notas = reader.IsDBNull(reader.GetOrdinal("Notas")) ? null : reader.GetString("Notas"),
                     Progreso = reader.IsDBNull(reader.GetOrdinal("Progreso")) ? null : reader.GetInt32("Progreso"),
                     Estado = reader.GetString("Estado"),
-                    RegistradoPorId = reader.IsDBNull(reader.GetOrdinal("RegistradoPorId")) ? null : reader.GetInt32("RegistradoPorId"),
+                    RegistradoPorId = reader.GetInt32("RegistradoPorId"),
                     NombreCaballo = reader.GetString("NombreCaballo"),
                     NombreEntrenamiento = reader.GetString("NombreEntrenamiento"),
                     NombreUsuario = reader.IsDBNull(reader.GetOrdinal("NombreUsuario")) ? null : reader.GetString("NombreUsuario")
@@ -78,7 +79,7 @@ namespace EquusTrackBackend.Repositories
                     Notas = reader.IsDBNull(reader.GetOrdinal("Notas")) ? null : reader.GetString("Notas"),
                     Progreso = reader.IsDBNull(reader.GetOrdinal("Progreso")) ? null : reader.GetInt32("Progreso"),
                     Estado = reader.GetString("Estado"),
-                    RegistradoPorId = reader.IsDBNull(reader.GetOrdinal("RegistradoPorId")) ? null : reader.GetInt32("RegistradoPorId"),
+                    RegistradoPorId = reader.GetInt32("RegistradoPorId"),
                     NombreCaballo = reader.GetString("NombreCaballo"),
                     NombreEntrenamiento = reader.GetString("NombreEntrenamiento"),
                     NombreUsuario = reader.IsDBNull(reader.GetOrdinal("NombreUsuario")) ? null : reader.GetString("NombreUsuario")

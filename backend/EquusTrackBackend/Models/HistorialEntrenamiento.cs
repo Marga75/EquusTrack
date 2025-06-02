@@ -9,7 +9,7 @@
         public string? Notas { get; set; }
         public int? Progreso { get; set; }
         public string Estado { get; set; } = "Completado";
-        public int? RegistradoPorId { get; set; }
+        public int RegistradoPorId { get; set; }
 
         // Extras para mostrar nombres relacionados
         public string? NombreCaballo { get; set; }
