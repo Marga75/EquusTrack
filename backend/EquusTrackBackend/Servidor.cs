@@ -200,26 +200,18 @@ namespace EquusTrackBackend
                 {
                     var segmentos = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-                    // GET /api/historial/caballo/{id}
-                    if (metodo == "GET" && segmentos.Length == 3 && segmentos[1] == "historial" && segmentos[2] == "caballo")
+                    // GET /api/historial/jinete/{id}
+                    if (metodo == "GET" && segmentos.Length == 4 && segmentos[1] == "historial" && segmentos[2] == "jinete")
                     {
-                        context.Response.StatusCode = 400;
-                        await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Falta ID de caballo" });
-                        return;
-                    }
-
-                    // GET /api/historial/caballo/{id}
-                    if (metodo == "GET" && segmentos.Length == 4 && segmentos[1] == "historial" && segmentos[2] == "caballo")
-                    {
-                        if (int.TryParse(segmentos[3], out int idCaballo))
+                        if (int.TryParse(segmentos[3], out int idJinete))
                         {
-                            await ControladorHistorialEntrenamiento.ProcesarHistorialPorCaballo(context, idCaballo);
+                            await ControladorHistorialEntrenamiento.ProcesarHistorialPorJinete(context, idJinete);
                             return;
                         }
                         else
                         {
                             context.Response.StatusCode = 400;
-                            await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "ID de caballo inválido" });
+                            await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "ID de jinete inválido" });
                             return;
                         }
                     }
