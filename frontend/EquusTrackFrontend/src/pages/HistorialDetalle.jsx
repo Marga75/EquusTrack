@@ -1,39 +1,39 @@
 import { useParams, useNavigate } from "react-router-dom";
 import LayoutConHeader from "../components/Header";
-
-// Datos mock para ejemplo (en backend luego irán por fetch)
-const historialMock = [
-  {
-    id: 1,
-    nombreEntrenamiento: "Resistencia Básica",
-    fecha: "2025-05-31",
-    progreso: 85,
-    notas: "Muy buen rendimiento, mantener ritmo.",
-    tipo: "Pie a tierra",
-    duracion: 30,
-  },
-  {
-    id: 2,
-    nombreEntrenamiento: "Técnica de Salto",
-    fecha: "2025-05-29",
-    progreso: 70,
-    notas: "Faltó concentración en los últimos saltos.",
-    tipo: "Montado",
-    duracion: 20,
-  },
-];
+import { useEffect, useState } from "react";
 
 export default function HistorialDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [historialDetalle, setHistorialDetalle] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Buscar el registro por id
-  const registro = historialMock.find((item) => item.id === parseInt(id));
+  useEffect(() => {
+    async function fetchHistorialDetalle() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/historial/${id}`);
+        if (!res.ok)
+          throw new Error("Error al cargar el detalle del historial");
+        const data = await res.json();
+        console.log("Respuesta del backend:", data);
 
-  if (!registro) {
+        if (!data || typeof data !== "object") {
+          throw new Error("Datos inválidos");
+        }
+
+        setHistorialDetalle(data.detalle);
+      } catch (error) {
+        console.error(error);
+        setError("No se pudo cargar el entrenamiento");
+      }
+    }
+    fetchHistorialDetalle();
+  }, [id]);
+
+  if (error) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-2xl font-bold mb-4">Registro no encontrado</h2>
+        <h2 className="text-2xl font-bold mb-4">{error}</h2>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded"
           onClick={() => navigate(-1)}
@@ -44,35 +44,53 @@ export default function HistorialDetalle() {
     );
   }
 
+  if (!historialDetalle) {
+    return (
+      <div className="p-6 text-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
   const links = [
     { label: "Inicio", href: "/dashboard" },
     { label: "Historial", href: "/historial" },
   ];
 
+  const tipoMap = {
+    PieATierra: "Pie a tierra",
+    Montado: "Montado",
+    Jinete: "Jinete",
+  };
+
   return (
     <div>
       <LayoutConHeader links={links} />
       <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6 text-center">Detalle del Entrenamiento</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Detalle del Entrenamiento
+        </h1>
         <div className="bg-white shadow rounded p-6 space-y-4">
-          <h2 className="text-2xl font-semibold">{registro.nombreEntrenamiento}</h2>
+          <h2 className="text-2xl font-semibold">
+            {historialDetalle.NombreEntrenamiento}
+          </h2>
           <p>
             <strong>Fecha:</strong>{" "}
-            {new Date(registro.fecha).toLocaleDateString()}
+            {new Date(historialDetalle.Fecha).toLocaleDateString()}
           </p>
           <p>
-            <strong>Tipo:</strong> {registro.tipo}
+            <strong>Tipo:</strong> {tipoMap[historialDetalle.Tipo] || historialDetalle.Tipo}
           </p>
           <p>
-            <strong>Duración:</strong> {registro.duracion} minutos
+            <strong>Duración:</strong> {historialDetalle.Duracion} minutos
           </p>
           <p>
-            <strong>Progreso:</strong> {registro.progreso}%
+            <strong>Progreso:</strong> {historialDetalle.Progreso}%
           </p>
           <p>
             <strong>Notas:</strong>
             <br />
-            {registro.notas}
+            {historialDetalle.Notas}
           </p>
           <button
             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"

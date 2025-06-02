@@ -10,6 +10,8 @@
         public int? Progreso { get; set; }
         public string Estado { get; set; } = "Completado";
         public int RegistradoPorId { get; set; }
+        public string Tipo { get; set; }
+        public int Duracion { get; set; }
 
         // Extras para mostrar nombres relacionados
         public string? NombreCaballo { get; set; }
