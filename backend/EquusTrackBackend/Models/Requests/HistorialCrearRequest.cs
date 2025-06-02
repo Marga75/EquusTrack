@@ -7,7 +7,7 @@
         public DateTime Fecha { get; set; }
         public string? Notas { get; set; }
         public int? Progreso { get; set; }
-        public int? RegistradoPorId { get; set; }
+        public int RegistradoPorId { get; set; }
         public string Estado { get; set; } = "Completado";
     }
 }
