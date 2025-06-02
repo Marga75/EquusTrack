@@ -109,19 +109,6 @@ CREATE TABLE RelEntrenadorAlumno (
     UNIQUE (IdEntrenador, IdAlumno)
 );
 
--- Tabla recomendaciones de entrenamiento
-/* CREATE TABLE Recomendaciones (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    IdEntrenador INT,
-    IdAlumno INT,
-    IdEntrenamiento INT,
-    Fecha DATE,
-    Comentario TEXT,
-    FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id),
-    FOREIGN KEY (IdAlumno) REFERENCES Usuarios(Id),
-    FOREIGN KEY (IdEntrenamiento) REFERENCES Entrenamientos(Id)
-); */
-
 -- Añadir IdEntrenador en Caballos
 ALTER TABLE Caballos 
 ADD COLUMN IdEntrenador INT NULL;
@@ -142,3 +129,7 @@ ADD COLUMN FechaAdopcion DATE;
 ALTER TABLE RelEntrenadorAlumno
 ADD COLUMN Estado ENUM('pendiente', 'aceptado', 'rechazado') NOT NULL DEFAULT 'pendiente',
 ADD COLUMN FechaSolicitud DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+-- Añadir imagen en usuario
+ALTER TABLE usuarios
+ADD COLUMN FotoUrl TEXT;
