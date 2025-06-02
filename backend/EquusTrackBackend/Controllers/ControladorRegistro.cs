@@ -21,6 +21,7 @@ namespace EquusTrackBackend.Controllers
                 bool ok = false;
                 if(datos != null)
                 {
+                    Console.WriteLine($"FotoUrl recibida: {datos.FotoUrl}");
                     ok = UsuarioRepository.RegistrarUsuario(
                         datos.Nombre,
                         datos.Apellido,
@@ -28,7 +29,8 @@ namespace EquusTrackBackend.Controllers
                         datos.Password,
                         datos.Rol,
                         datos.FechaNacimiento,
-                        datos.Genero
+                        datos.Genero,
+                        datos.FotoUrl
                     );
                 }
 

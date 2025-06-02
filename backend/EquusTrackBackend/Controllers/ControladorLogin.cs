@@ -38,7 +38,8 @@ namespace EquusTrackBackend.Controllers
                             email = usuario.Email,
                             rol = usuario.Rol,
                             fechaNacimiento = usuario.FechaNacimiento.ToString("yyyy-MM-dd"),
-                            genero = usuario.Genero
+                            genero = usuario.Genero,
+                            fotoUrl = usuario.FotoUrl
                         }
                     }));
                 }

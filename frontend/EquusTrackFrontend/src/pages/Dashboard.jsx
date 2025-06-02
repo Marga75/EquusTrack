@@ -100,7 +100,7 @@ export default function Dashboard() {
         {/* Perfil usuario */}
         <div className="col-span-1 bg-white rounded-xl shadow p-6 flex flex-col items-center text-center">
           <img
-            src={userPhoto}
+            src={(usuario?.fotoUrl || "").trim() || userPhoto}
             alt="Usuario"
             className="w-24 h-24 rounded-full mb-4 object-cover"
           />
@@ -171,7 +171,6 @@ export default function Dashboard() {
                 Caballos de tus alumnos
               </h3>
               {alumnos.map((alumno) => {
-                console.log("Alumno recibido:", alumno);
                 return (
                   <AlumnoCaballos
                     key={alumno.Id || alumno.id}

@@ -10,5 +10,6 @@ namespace EquusTrackBackend.Models
         public required string Rol { get; set; }
         public DateTime FechaNacimiento { get; set; }
         public required string Genero { get; set; }
+        public string? FotoUrl { get; set; }
     }
 }
