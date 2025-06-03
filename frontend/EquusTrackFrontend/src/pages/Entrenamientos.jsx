@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import LayoutConHeader from "../components/Header";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../components/AuthContext";
 
 export default function Entrenamientos() {
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const links = [

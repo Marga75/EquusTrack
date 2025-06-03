@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import LayoutConHeader from "../components/Header";
+import { useAuth } from "../components/AuthContext";
 
 function formatTime(segundos) {
   const min = Math.floor(segundos / 60);
@@ -9,6 +10,7 @@ function formatTime(segundos) {
 }
 
 export default function EntrenamientoGuiado() {
+  const { logout } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [entrenamiento, setEntrenamiento] = useState(null);
@@ -26,6 +28,11 @@ export default function EntrenamientoGuiado() {
   const usuarioGuardado = localStorage.getItem("usuario");
   const usuario = usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
   const idUsuario = usuario ? usuario.id : null;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     async function fetchEntrenamiento() {
@@ -161,8 +168,8 @@ export default function EntrenamientoGuiado() {
       <div>
         <LayoutConHeader
           links={links}
-          handleLogout={() => navigate("/", { replace: true })}
-        />
+          handleLogout={handleLogout}
+        ></LayoutConHeader>
         <div className="max-w-2xl mx-auto p-6 text-center bg-white shadow rounded">
           <h1 className="text-2xl font-bold mb-4">Entrenamiento Finalizado</h1>
           <p className="mb-2">
@@ -223,9 +230,9 @@ export default function EntrenamientoGuiado() {
   return (
     <div>
       <LayoutConHeader
-        links={links}
-        handleLogout={() => navigate("/", { replace: true })}
-      />
+          links={links}
+          handleLogout={handleLogout}
+        ></LayoutConHeader>
       <div className="max-w-3xl mx-auto p-6">
         <h1 className="text-3xl font-bold mb-4 text-center">
           {entrenamiento.Nombre || entrenamiento.nombre} - Modo Guiado

@@ -5,8 +5,10 @@ import LayoutConHeader from "../components/Header";
 import { Plus } from "lucide-react";
 import FormularioServicio from "../components/FormularioServicio";
 import HistorialServicios from "../components/HistorialServicios";
+import { useAuth } from "../components/AuthContext";
 
 export default function CaballoDetalle() {
+  const { logout } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
 

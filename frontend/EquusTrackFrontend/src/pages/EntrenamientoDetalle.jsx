@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LayoutConHeader from "../components/Header";
+import { useAuth } from "../components/AuthContext";
 
 export default function EntrenamientoDetalle() {
+  const { logout } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [entrenamiento, setEntrenamiento] = useState(null);
@@ -37,12 +39,17 @@ export default function EntrenamientoDetalle() {
     { label: "Entrenamientos", href: "/entrenamientos" },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div>
       <LayoutConHeader
-        links={links}
-        handleLogout={() => navigate("/", { replace: true })}
-      />
+          links={links}
+          handleLogout={handleLogout}
+        ></LayoutConHeader>
       <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-3xl font-bold mb-4 text-center">
           {entrenamiento.Nombre}

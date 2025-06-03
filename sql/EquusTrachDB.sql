@@ -3,7 +3,7 @@ DROP DATABASE IF EXISTS EquusTrackDB;
 CREATE DATABASE EquusTrackDB;
 USE EquusTrackDB;
 
--- Tabla usuarios
+-- Tabla Usuarios
 CREATE TABLE Usuarios (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100) NOT NULL,
@@ -13,31 +13,35 @@ CREATE TABLE Usuarios (
     Rol ENUM('Jinete', 'Entrenador', 'Administrador') NOT NULL,
     FechaNacimiento DATE,
     Genero ENUM('Masculino', 'Femenino', 'Otro'),
-    FechaRegistro DATETIME DEFAULT CURRENT_TIMESTAMP
+    FechaRegistro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FotoUrl TEXT
 );
 
-
--- Tabla caballos
+-- Tabla Caballos
 CREATE TABLE Caballos (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100),
-    Edad INT,
     Raza VARCHAR(100),
     Color VARCHAR(100),
     FotoUrl TEXT,
     IdUsuario INT,
-    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id) ON DELETE CASCADE
+    IdEntrenador INT NULL,
+    FechaNacimiento DATE,
+    FechaAdopcion DATE,
+    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id) ON DELETE SET NULL
 );
 
--- Tabla entrenamientos
+-- Tabla Entrenamientos
 CREATE TABLE Entrenamientos (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Titulo VARCHAR(100) NOT NULL,
     Tipo ENUM('PieATierra', 'Montado', 'Jinete') NOT NULL,
-    Descripcion TEXT
+    Descripcion TEXT,
+    Imagen VARCHAR(255)
 );
 
--- Tabla ejercicios_entrenamiento
+-- Tabla EjerciciosEntrenamiento
 CREATE TABLE EjerciciosEntrenamiento (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     EntrenamientoId INT NOT NULL,
@@ -51,22 +55,22 @@ CREATE TABLE EjerciciosEntrenamiento (
     FOREIGN KEY (EntrenamientoId) REFERENCES Entrenamientos(Id) ON DELETE CASCADE
 );
 
--- Tabla registro_entrenamientos
+-- Tabla RegistroEntrenamientos
 CREATE TABLE RegistroEntrenamientos (
     Id INT AUTO_INCREMENT PRIMARY KEY,
-    IdCaballo INT NOT NULL,
+    IdCaballo INT,
     IdEntrenamiento INT NOT NULL,
     Fecha DATE NOT NULL,
     Notas TEXT,
     Progreso INT,
     RegistradoPorId INT,
     Estado ENUM('Completado', 'Incompleto', 'Cancelado') DEFAULT 'Completado',
-    FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE CASCADE,
+    FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE SET NULL,
     FOREIGN KEY (IdEntrenamiento) REFERENCES Entrenamientos(Id) ON DELETE CASCADE,
     FOREIGN KEY (RegistradoPorId) REFERENCES Usuarios(Id) ON DELETE SET NULL
 );
 
--- Tabla veterinario
+-- Tabla Veterinario
 CREATE TABLE Veterinario (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     IdCaballo INT,
@@ -77,7 +81,7 @@ CREATE TABLE Veterinario (
     FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE CASCADE
 );
 
--- Tabla herrador
+-- Tabla Herrador
 CREATE TABLE Herrador (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     IdCaballo INT,
@@ -88,7 +92,7 @@ CREATE TABLE Herrador (
     FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE CASCADE
 );
 
--- Tabla fisio
+-- Tabla Fisioterapia
 CREATE TABLE Fisioterapia (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     IdCaballo INT,
@@ -99,37 +103,14 @@ CREATE TABLE Fisioterapia (
     FOREIGN KEY (IdCaballo) REFERENCES Caballos(Id) ON DELETE CASCADE
 );
 
--- Tabla relación entrenador - alumno
+-- Tabla RelEntrenadorAlumno
 CREATE TABLE RelEntrenadorAlumno (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     IdEntrenador INT,
     IdAlumno INT,
+    Estado ENUM('pendiente', 'aceptado', 'rechazado') NOT NULL DEFAULT 'pendiente',
+    FechaSolicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (IdEntrenador, IdAlumno),
     FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id),
-    FOREIGN KEY (IdAlumno) REFERENCES Usuarios(Id),
-    UNIQUE (IdEntrenador, IdAlumno)
+    FOREIGN KEY (IdAlumno) REFERENCES Usuarios(Id)
 );
-
--- Añadir IdEntrenador en Caballos
-ALTER TABLE Caballos 
-ADD COLUMN IdEntrenador INT NULL;
-
-ALTER TABLE Caballos 
-ADD CONSTRAINT FK_Caballos_Entrenador FOREIGN KEY (IdEntrenador) REFERENCES Usuarios(Id) ON DELETE SET NULL;
-
--- Quitar columna Edad
-ALTER TABLE Caballos
-DROP COLUMN Edad;
-
--- Añadir FechaNacimiento y FechaAdopcion
-ALTER TABLE Caballos
-ADD COLUMN FechaNacimiento DATE,
-ADD COLUMN FechaAdopcion DATE;
-
--- Añadir Estado y FechaSolicitud
-ALTER TABLE RelEntrenadorAlumno
-ADD COLUMN Estado ENUM('pendiente', 'aceptado', 'rechazado') NOT NULL DEFAULT 'pendiente',
-ADD COLUMN FechaSolicitud DATETIME DEFAULT CURRENT_TIMESTAMP;
-
--- Añadir imagen en usuario
-ALTER TABLE usuarios
-ADD COLUMN FotoUrl TEXT;
