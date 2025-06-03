@@ -10,15 +10,16 @@ export default function Registro() {
     rol: "Jinete",
     fechaNacimiento: "",
     genero: "Masculino",
-    fotoUrl: "",
   });
 
+  const [fotoArchivo, setFotoArchivo] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     setError("");
-  }, [formData]);
+  }, [formData, fotoArchivo]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,21 +29,41 @@ export default function Registro() {
     }));
   };
 
+  const handleFotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFotoArchivo(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const data = new FormData();
+    data.append("nombre", formData.nombre);
+    data.append("apellido", formData.apellido);
+    data.append("email", formData.email);
+    data.append("password", formData.password);
+    data.append("rol", formData.rol);
+    data.append("fechaNacimiento", formData.fechaNacimiento);
+    data.append("genero", formData.genero);
+
+    if (fotoArchivo) {
+      data.append("foto", fotoArchivo);
+    }
 
     try {
       const res = await fetch("http://localhost:5000/registrar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: data,
       });
 
       const text = await res.text();
       const result = text ? JSON.parse(text) : null;
 
       if (result?.exito) {
-        navigate("/", { state: { mensaje: "Usuario registrado con éxito" } }); // redirige a login
+        navigate("/", { state: { mensaje: "Usuario registrado con éxito" } });
       } else {
         setError(result?.mensaje || "Error al registrar usuario");
       }
@@ -128,14 +149,24 @@ export default function Registro() {
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro</option>
           </select>
-          <input
-            name="fotoUrl"
-            value={formData.fotoUrl}
-            onChange={handleChange}
-            type="text"
-            placeholder="URL de la foto de perfil (opcional)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
+
+          {/* Campo para cargar la foto */}
+          <div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFotoChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+            {previewUrl && (
+              <img
+                src={previewUrl}
+                alt="Vista previa"
+                className="mt-2 w-24 h-24 object-cover rounded-full mx-auto"
+              />
+            )}
+          </div>
+
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
