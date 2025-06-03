@@ -7,6 +7,8 @@ namespace EquusTrackBackend.Controllers
 {
     public static class ControladorCaballoDetalle
     {
+        private static readonly string BaseUrl = "http://localhost:5000/";
+
         public static async Task ProcesarCaballoPorId(HttpListenerContext context)
         {
             try
@@ -37,6 +39,9 @@ namespace EquusTrackBackend.Controllers
                     context.Response.Close();
                     return;
                 }
+
+                // Agregar URL completa a FotoUrl
+                caballo.FotoUrl = string.IsNullOrEmpty(caballo.FotoUrl) ? null : BaseUrl + caballo.FotoUrl.TrimStart('/');
 
                 context.Response.StatusCode = 200;
                 context.Response.ContentType = "application/json";

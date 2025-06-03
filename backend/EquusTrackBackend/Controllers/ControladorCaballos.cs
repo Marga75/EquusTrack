@@ -4,11 +4,14 @@ using EquusTrackBackend.Utils;
 using EquusTrackBackend.Models.Requests;
 using EquusTrackBackend.Repositories;
 using EquusTrackBackend.Models;
+using HttpMultipartParser;
 
 namespace EquusTrackBackend.Controllers
 {
     public static class ControladorCaballos
     {
+        private static readonly string BaseUrl = "http://localhost:5000/";
+
         // Procesa una solicitud POST para obtener los caballos de un usuario según su rol
         public static async Task ProcesarCaballos(HttpListenerContext context)
         {
@@ -21,6 +24,12 @@ namespace EquusTrackBackend.Controllers
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new Exception("Datos inválidos para obtener caballos");
 
                 List<Caballo> lista = CaballoRepository.ObtenerCaballosPorUsuario(datos.IdUsuario, datos.Rol);
+
+                // Agregar URL completa a FotoUrl
+                foreach (var caballo in lista)
+                {
+                    caballo.FotoUrl = string.IsNullOrEmpty(caballo.FotoUrl) ? null : BaseUrl + caballo.FotoUrl.TrimStart('/');
+                }
 
                 context.Response.StatusCode = 200;
                 context.Response.ContentType = "application/json";
@@ -59,6 +68,12 @@ namespace EquusTrackBackend.Controllers
 
                 List<Caballo> lista = CaballoRepository.ObtenerCaballosPorUsuario(idUsuario, rol);
 
+                // Agregar URL completa a FotoUrl
+                foreach (var caballo in lista)
+                {
+                    caballo.FotoUrl = string.IsNullOrEmpty(caballo.FotoUrl) ? null : BaseUrl + caballo.FotoUrl.TrimStart('/');
+                }
+
                 context.Response.StatusCode = 200;
                 context.Response.ContentType = "application/json";
                 Helpers.AgregarCabecerasCORS(context.Response);
@@ -79,21 +94,72 @@ namespace EquusTrackBackend.Controllers
         {
             try
             {
-                using var reader = new StreamReader(context.Request.InputStream);
-                string body = await reader.ReadToEndAsync();
+                var req = context.Request;
 
-                var datos = JsonSerializer.Deserialize<CaballoNuevoRequest>(body,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new Exception("Datos inválidos para crear caballo");
+                if (!req.ContentType.StartsWith("multipart/form-data"))
+                {
+                    context.Response.StatusCode = 400;
+                    await Helpers.EnviarErrorRespuesta(context, null, "Content-Type debe ser multipart/form-data");
+                    return;
+                }
 
+                // Parsear formulario multipart
+                var multipart = MultipartFormDataParser.Parse(req.InputStream);
+
+                // Obtener campos del formulario
+                string idUsuarioStr = multipart.Parameters.FirstOrDefault(p => p.Name == "idUsuario")?.Data;
+                string nombre = multipart.Parameters.FirstOrDefault(p => p.Name == "nombre")?.Data;
+                string raza = multipart.Parameters.FirstOrDefault(p => p.Name == "raza")?.Data;
+                string color = multipart.Parameters.FirstOrDefault(p => p.Name == "color")?.Data;
+                string fechaNacimientoStr = multipart.Parameters.FirstOrDefault(p => p.Name == "fechaNacimiento")?.Data;
+                string fechaAdopcionStr = multipart.Parameters.FirstOrDefault(p => p.Name == "fechaAdopcion")?.Data;
+                string idEntrenadorStr = multipart.Parameters.FirstOrDefault(p => p.Name == "idEntrenador")?.Data;
+
+                if (!int.TryParse(idUsuarioStr, out int idUsuario))
+                    throw new Exception("IdUsuario inválido");
+
+                DateTime? fechaNacimiento = null;
+                if (!string.IsNullOrWhiteSpace(fechaNacimientoStr))
+                    fechaNacimiento = DateTime.Parse(fechaNacimientoStr);
+
+                DateTime? fechaAdopcion = null;
+                if (!string.IsNullOrWhiteSpace(fechaAdopcionStr))
+                    fechaAdopcion = DateTime.Parse(fechaAdopcionStr);
+
+                int? idEntrenador = null;
+                if (int.TryParse(idEntrenadorStr, out int entrenadorParsed))
+                    idEntrenador = entrenadorParsed;
+
+                // Procesar archivo imagen
+                var fotoFile = multipart.Files.FirstOrDefault();
+                string fotoUrl = "";
+
+                if (fotoFile != null)
+                {
+                    string carpetaFotos = Path.Combine(AppContext.BaseDirectory, "Uploads", "Caballos");
+                    if (!Directory.Exists(carpetaFotos)) Directory.CreateDirectory(carpetaFotos);
+
+                    string extension = Path.GetExtension(fotoFile.FileName);
+                    string nombreArchivo = Guid.NewGuid().ToString() + extension;
+                    string rutaArchivo = Path.Combine(carpetaFotos, nombreArchivo);
+
+                    using var fileStream = File.Create(rutaArchivo);
+                    fotoFile.Data.CopyTo(fileStream);
+
+                    // Guardamos la ruta relativa que usarás para mostrar la imagen
+                    fotoUrl = "/uploads/caballos/" + nombreArchivo;
+                }
+
+                // Llamar a repo para crear caballo (modifica para que acepte fotoUrl)
                 bool creado = CaballoRepository.CrearCaballo(
-                    datos.IdUsuario,
-                    datos.Nombre,
-                    datos.Raza,
-                    datos.Color,
-                    datos.FotoUrl,
-                    datos.FechaNacimiento,
-                    datos.FechaAdopcion,
-                    datos.IdEntrenador
+                    idUsuario,
+                    nombre,
+                    raza,
+                    color,
+                    fotoUrl,
+                    fechaNacimiento,
+                    fechaAdopcion,
+                    idEntrenador
                 );
 
                 context.Response.StatusCode = creado ? 200 : 400;
