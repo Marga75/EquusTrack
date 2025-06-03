@@ -1,8 +1,10 @@
 import LayoutConHeader from "../components/Header";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useAuth } from "../components/AuthContext";
 
 export default function HistorialEntrenamientos() {
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const links = [
@@ -25,6 +27,11 @@ export default function HistorialEntrenamientos() {
 
   // Guardamos la lista de alumnos solo si es entrenador
   const [alumnos, setAlumnos] = useState([]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     async function fetchHistorialDeJinete(idJinete) {
@@ -138,7 +145,10 @@ export default function HistorialEntrenamientos() {
 
   return (
     <div>
-      <LayoutConHeader links={links} />
+      <LayoutConHeader
+          links={links}
+          handleLogout={handleLogout}
+        ></LayoutConHeader>
       <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6 text-center">
           Historial de Entrenamientos

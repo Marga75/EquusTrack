@@ -1,12 +1,19 @@
 import { useParams, useNavigate } from "react-router-dom";
 import LayoutConHeader from "../components/Header";
 import { useEffect, useState } from "react";
+import { useAuth } from "../components/AuthContext";
 
 export default function HistorialDetalle() {
+  const { logout } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [historialDetalle, setHistorialDetalle] = useState(null);
   const [error, setError] = useState(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     async function fetchHistorialDetalle() {
@@ -65,7 +72,10 @@ export default function HistorialDetalle() {
 
   return (
     <div>
-      <LayoutConHeader links={links} />
+      <LayoutConHeader
+          links={links}
+          handleLogout={handleLogout}
+        ></LayoutConHeader>
       <div className="max-w-3xl mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6 text-center">
           Detalle del Entrenamiento
