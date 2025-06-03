@@ -39,7 +39,7 @@ namespace EquusTrackBackend.Controllers
                             rol = usuario.Rol,
                             fechaNacimiento = usuario.FechaNacimiento.ToString("yyyy-MM-dd"),
                             genero = usuario.Genero,
-                            fotoUrl = usuario.FotoUrl
+                            fotoUrl = string.IsNullOrEmpty(usuario.FotoUrl) ? null : $"http://localhost:5000/{usuario.FotoUrl.TrimStart('/')}"
                         }
                     }));
                 }

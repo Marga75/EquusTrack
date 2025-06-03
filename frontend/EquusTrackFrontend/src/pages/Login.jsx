@@ -44,6 +44,7 @@ export default function Login() {
       });
 
       const data = await res.json();
+      console.log("Usuario recibido del backend:", data.usuario);
 
       if (data.exito) {
         login(data.usuario);

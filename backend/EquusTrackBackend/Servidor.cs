@@ -36,6 +36,48 @@ namespace EquusTrackBackend
 
             try
             {
+                /*if (path.StartsWith("/uploads/") && metodo == "GET")
+                {
+                    await StaticFiles.ServirArchivo(context);
+                    return;
+                }*/
+
+                // Servir archivos estáticos en /uploads/
+                if (path.StartsWith("/uploads/") && metodo == "GET")
+                {
+                    string rutaArchivo = Path.Combine(AppContext.BaseDirectory, path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    if (File.Exists(rutaArchivo))
+                    {
+                        context.Response.StatusCode = 200;
+                        string extension = Path.GetExtension(rutaArchivo).ToLowerInvariant();
+
+                        string mimeType = extension switch
+                        {
+                            ".jpg" or ".jpeg" => "image/jpeg",
+                            ".png" => "image/png",
+                            ".gif" => "image/gif",
+                            _ => "application/octet-stream"
+                        };
+
+                        context.Response.ContentType = mimeType;
+
+                        using (var fileStream = File.OpenRead(rutaArchivo))
+                        {
+                            await fileStream.CopyToAsync(context.Response.OutputStream);
+                        }
+                        context.Response.Close();
+                        return;
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 404;
+                        await Helpers.EnviarJson(context.Response, new { exito = false, mensaje = "Archivo no encontrado" });
+                        return;
+                    }
+                }
+
+
                 // 1. Obtener caballos por usuario
                 if (path.StartsWith("/api/caballos/usuario/") && metodo == "GET")
                 {
