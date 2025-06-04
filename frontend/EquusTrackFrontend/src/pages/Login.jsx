@@ -44,7 +44,6 @@ export default function Login() {
       });
 
       const data = await res.json();
-      console.log("Usuario recibido del backend:", data.usuario);
 
       if (data.exito) {
         login(data.usuario);
@@ -72,8 +71,8 @@ export default function Login() {
             <br></br>
             Tu espacio para gestionar el perfil de tu mejor compañero. Registra,
             organiza y consulta fácilmente toda la información sobre tus
-            caballos, entrenamientos y cuidados. Diseñado para jinetes,
-            entrenadores y administradores que quieren llevar el control de
+            caballos, entrenamientos y cuidados. Diseñado para jinetes y
+            entrenadores que quieren llevar el control de
             forma sencilla y eficiente.
           </p>
         </div>

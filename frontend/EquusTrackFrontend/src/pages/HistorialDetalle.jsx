@@ -22,8 +22,7 @@ export default function HistorialDetalle() {
         if (!res.ok)
           throw new Error("Error al cargar el detalle del historial");
         const data = await res.json();
-        console.log("Respuesta del backend:", data);
-
+        
         if (!data || typeof data !== "object") {
           throw new Error("Datos inválidos");
         }

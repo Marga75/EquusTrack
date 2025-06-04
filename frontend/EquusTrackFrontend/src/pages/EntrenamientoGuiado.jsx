@@ -133,7 +133,6 @@ export default function EntrenamientoGuiado() {
 
       if (!res.ok) throw new Error("Error al registrar el entrenamiento");
       const json = await res.json();
-      console.log("Registro guardado:", json);
       setExito(true);
 
       setTimeout(() => {
