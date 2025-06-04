@@ -42,7 +42,6 @@ export default function Entrenamientos() {
         if (!res.ok)
           throw new Error("Error al cargar el detalle de los entrenamientos");
         const data = await res.json();
-        console.log("Respuesta del backend:", data);
 
         if (data.exito) {
           setEntrenamientos(data.entrenamientos);

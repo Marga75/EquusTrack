@@ -10,7 +10,6 @@ export default function EntrenadorPerfil({ usuario }) {
         `http://localhost:5000/relacion/solicitudes/entrenador/${usuario.id}`
       );
       const solicitudesData = await resSolicitudes.json();
-      console.log("Solicitudes recibidas:", solicitudesData);
 
       const resAlumnos = await fetch(
         `http://localhost:5000/relacion/alumnos/entrenador/${usuario.id}`

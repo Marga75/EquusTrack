@@ -16,7 +16,6 @@ export default function EntrenamientoDetalle() {
         const res = await fetch(`http://localhost:5000/api/entrenamientos/${id}`);
         if (!res.ok) throw new Error("Error al cargar el detalle del entrenamiento");
         const data = await res.json();
-        console.log("Respuesta del backend:", data);
 
         if (!data || typeof data !== "object") {
           throw new Error("Datos inválidos");

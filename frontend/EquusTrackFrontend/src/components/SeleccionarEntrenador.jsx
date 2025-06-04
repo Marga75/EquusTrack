@@ -11,7 +11,7 @@ export default function SeleccionarEntrenador({ usuario }) {
       const res = await fetch("http://localhost:5000/entrenadores");
       if (!res.ok) throw new Error("Error al cargar entrenadores");
       const data = await res.json();
-      console.log("Respuesta de entrenadores:", data); // DEBUG
+      
       setEntrenadores(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
@@ -101,8 +101,6 @@ export default function SeleccionarEntrenador({ usuario }) {
               <option value="" disabled>
                 Selecciona un entrenador
               </option>
-
-              {console.log("Entrenadores para el selector:", entrenadores)}
 
               {Array.isArray(entrenadores) &&
                 entrenadores.map((ent) => (

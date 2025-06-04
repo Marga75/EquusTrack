@@ -10,7 +10,6 @@ export default function HistorialServicios({ idCaballo, tipo, recarga }) {
         const url = `http://localhost:5000/api/caballos/${idCaballo}/${tipo}`;
         const res = await fetch(url);
         const data = await res.json();
-        console.log("Datos recibidos:", data);
 
         if (data.exito) {
           // Mapear el nombre del array esperado según el tipo
